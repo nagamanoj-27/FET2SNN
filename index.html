@@ -3,32 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  // Hide page immediately until token is verified
-  document.documentElement.style.display = 'none';
-
-  (async function() {
+  (function() {
     const token = sessionStorage.getItem('fet2snn_token');
-    const path = window.location.pathname;
-    const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/';
-
     if (!token) {
-      window.location.href = base + 'login.html';
-      return;
-    }
-    try {
-      const res = await fetch('/api/auth/verify', {
-        headers: { 'Authorization': 'Bearer ' + token }
+      // Hide the main dashboard container immediately during parse
+      const style = document.createElement('style');
+      style.id = 'hide-app-style';
+      style.innerHTML = '.app-container { display: none !important; }';
+      document.head.appendChild(style);
+
+      // Inject the login iframe when DOM is ready
+      window.addEventListener('DOMContentLoaded', () => {
+        const iframe = document.createElement('iframe');
+        iframe.id = 'authFrame';
+        iframe.src = 'login.html';
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.zIndex = '999999';
+        document.body.appendChild(iframe);
       });
-      if (res.status === 401) {
-        sessionStorage.removeItem('fet2snn_token');
-        window.location.href = base + 'login.html';
-        return;
-      }
-    } catch (e) {
-      console.warn("Offline fallback mode - unable to verify token:", e);
+    } else {
+      // Hide page immediately until token is verified with backend
+      document.documentElement.style.display = 'none';
+
+      (async function verify() {
+        try {
+          const res = await fetch('/api/auth/verify', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (res.status === 401) {
+            sessionStorage.removeItem('fet2snn_token');
+            location.reload();
+            return;
+          }
+        } catch (e) {
+          console.warn("Offline fallback mode - unable to verify token:", e);
+        }
+        // Show page if authenticated
+        document.documentElement.style.display = '';
+      })();
     }
-    // Show page if authenticated
-    document.documentElement.style.display = '';
   })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -1383,7 +1401,7 @@ body {
     <a href="contact.html" target="_blank" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(16, 185, 129, 0.07); border-color: rgba(16, 185, 129, 0.3); color: var(--green); transition: all 0.3s ease; text-decoration: none;" onmouseover="this.style.background='rgba(16, 185, 129, 0.14)'; this.style.borderColor='var(--green)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(16, 185, 129, 0.07)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='none';" title="Contact the developer">
       <i class="fas fa-envelope"></i> Contact
     </a>
-    <button onclick="const path = window.location.pathname; const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/'; sessionStorage.removeItem('fet2snn_token'); window.location.href = base + 'login.html';" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(239, 68, 68, 0.07); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.14)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.07)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='none';" title="Logout from session">
+    <button onclick="sessionStorage.removeItem('fet2snn_token'); location.reload();" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(239, 68, 68, 0.07); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.14)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.07)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='none';" title="Logout from session">
       <i class="fas fa-sign-out-alt"></i> Logout
     </button>
     <button id="startTourBtn" style="display:none;" class="btn bv" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center;" title="Start Step-by-Step Guided Tutorial">
