@@ -1,0 +1,19 @@
+# Caches
+__pycache__/
+_psycache_/
+_pycache_/
+*.pyc
+
+# Local Config & Environment
+.env
+.env.*
+!.env.example
+
+# Large Binaries / Directories
+ffmpeg/
+*.log
+scratch/*.log
+
+# Operating System Files
+.DS_Store
+Thumbs.db

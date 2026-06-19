@@ -1,0 +1,22 @@
+- [x] Revert the SNN Performance Core dashboard changes from the main page of `index.html` to restore the original basic SNN predictions card.
+- [x] Implement a dedicated sidebar tab page titled **FET2COMPACT** to house the gauges and sparkline diagnostics.
+- [x] Integrate the **TCAD-to-Cadence Workbench** (Verilog-A compact model generator) as a separate tab page loaded from `cadence.html`.
+- [x] Add user inputs for Thermal Resistance `Rth` and Ambient Temperature `T_amb` in `cadence.html`.
+- [x] Update Verilog-A code generator in `cadence.html` to support Thermal-Aware Nanosheet GAA-FET (TAAM) self-heating calculations.
+- [x] Update Cadence Virtuoso workflow documentation in `cadence.html` to include the new thermal parameters.
+- [x] Update `walkthrough.md` to document the new TAAM self-heating model.
+- [x] Style `FET2COMPACT` as a "Coming Soon" feature in `index.html`:
+  - Added a purple "Soon" badge to the sidebar button.
+  - Handled collapsed sidebar badge hiding via class `.badge-soon`.
+  - Added a glowing glassmorphic "Feature Coming Soon" overlay panel.
+  - Wrapped content grid inside a blurred preview container (`filter: blur(4px)`).
+- [x] Add upcoming projects `TXT2PCB` and `NL2GDS` in `index.html`:
+  - Generated premium high-tech vector logos.
+  - Added an "Upcoming Labs Projects" card section directly in the right column of the main dashboard with navigation links.
+  - Created a new sidebar section "FET2SNN Labs" with navigation buttons and "Soon" badges.
+  - Built comprehensive glassmorphic coming soon subpages for both projects, featuring logo previews, descriptive blurbs, capability checklists, and release targets.
+- [x] Style `Educate` as a "Coming Soon" feature in `index.html`:
+  - Added a purple "Soon" badge to the sidebar button.
+  - Wrapped the biological and hardware animations inside a blurred container.
+  - Overlayed a glassmorphic "Feature Coming Soon" card panel for the Neuromorphic Education & Animation Suite.
+

@@ -1,0 +1,959 @@
+
+        // ==========================================
+        // SCENE SETUP
+        // ==========================================
+        const container = document.getElementById('three-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050a18);
+        scene.fog = new THREE.FogExp2(0x050a18, 0.028);
+
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 2, 8);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance"
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.6;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        container.appendChild(renderer.domElement);
+
+        // ==========================================
+        // CINEMATIC LIGHTING WITH VOLUMETRIC FEEL
+        // ==========================================
+        const ambientLight = new THREE.AmbientLight(0x0a1a2a, 0.15);
+        scene.add(ambientLight);
+
+        // Key light with warm color
+        const keyLight = new THREE.DirectionalLight(0x00d4ff, 1.4);
+        keyLight.position.set(5, 10, 7);
+        keyLight.castShadow = true;
+        scene.add(keyLight);
+
+        // Fill light
+        const fillLight = new THREE.DirectionalLight(0x4D96FF, 0.5);
+        fillLight.position.set(-5, 2, -3);
+        scene.add(fillLight);
+
+        // Rim light - purple
+        const rimLight = new THREE.DirectionalLight(0x9B59B6, 0.8);
+        rimLight.position.set(-3, -1, -8);
+        scene.add(rimLight);
+
+        // Back light
+        const backLight = new THREE.DirectionalLight(0x00d4ff, 0.3);
+        backLight.position.set(0, 1, -10);
+        scene.add(backLight);
+
+        // Volumetric light beams (using spotlights)
+        const spotLight1 = new THREE.SpotLight(0x00d4ff, 0.3);
+        spotLight1.position.set(3, 5, 4);
+        spotLight1.angle = 0.3;
+        spotLight1.penumbra = 0.5;
+        spotLight1.decay = 1;
+        spotLight1.distance = 15;
+        scene.add(spotLight1);
+
+        const spotLight2 = new THREE.SpotLight(0x9B59B6, 0.2);
+        spotLight2.position.set(-3, 3, 4);
+        spotLight2.angle = 0.3;
+        spotLight2.penumbra = 0.5;
+        spotLight2.decay = 1;
+        spotLight2.distance = 15;
+        scene.add(spotLight2);
+
+        const pointLight1 = new THREE.PointLight(0x00d4ff, 0.6, 8);
+        pointLight1.position.set(2, 1, 2);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x9B59B6, 0.4, 8);
+        pointLight2.position.set(-2, -1, 2);
+        scene.add(pointLight2);
+
+        const pointLight3 = new THREE.PointLight(0xFF6B6B, 0.2, 6);
+        pointLight3.position.set(0, 2, -3);
+        scene.add(pointLight3);
+
+        // ==========================================
+        // MAIN GROUP
+        // ==========================================
+        const mainGroup = new THREE.Group();
+        scene.add(mainGroup);
+
+        // ==========================================
+        // 1. SUBSTRATE WITH HOLOGRAPHIC GLOW
+        // ==========================================
+        const subMat = new THREE.MeshPhysicalMaterial({
+            color: 0x0a1a2a,
+            metalness: 0.6,
+            roughness: 0.2,
+            transparent: true,
+            opacity: 0.6,
+            envMapIntensity: 1.0,
+            clearcoat: 0.2,
+        });
+        const substrate = new THREE.Mesh(
+            new THREE.BoxGeometry(4.5, 0.3, 2.6),
+            subMat
+        );
+        substrate.position.y = -0.9;
+        substrate.castShadow = true;
+        mainGroup.add(substrate);
+
+        // Holographic grid on substrate
+        const gridMat = new THREE.LineBasicMaterial({
+            color: 0x00d4ff,
+            transparent: true,
+            opacity: 0.03,
+        });
+        for (let i = -2; i <= 2; i += 0.5) {
+            const geo = new THREE.BufferGeometry();
+            const verts = new Float32Array([
+                i, -0.75, -1.3,
+                i, -0.75, 1.3
+            ]);
+            geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+            const line = new THREE.Line(geo, gridMat);
+            mainGroup.add(line);
+        }
+        for (let i = -1.3; i <= 1.3; i += 0.5) {
+            const geo = new THREE.BufferGeometry();
+            const verts = new Float32Array([
+                -2.2, -0.75, i,
+                2.2, -0.75, i
+            ]);
+            geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+            const line = new THREE.Line(geo, gridMat);
+            mainGroup.add(line);
+        }
+
+        // ==========================================
+        // 2. NANOSHEETS WITH GRADIENT
+        // ==========================================
+        const sheetColors = [0x00d4ff, 0x4D96FF, 0x2a6a9a];
+        const sheets = [];
+        const sheetWidth = 2.4;
+        const sheetThickness = 0.09;
+        const sheetSpacing = 0.42;
+
+        for (let i = 0; i < 3; i++) {
+            const yPos = -0.5 + i * sheetSpacing;
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: sheetColors[i % sheetColors.length],
+                metalness: 0.1,
+                roughness: 0.05,
+                transparent: true,
+                opacity: 0.92,
+                emissive: sheetColors[i % sheetColors.length],
+                emissiveIntensity: 0.1 + i * 0.04,
+                envMapIntensity: 0.6,
+                clearcoat: 0.3,
+            });
+            const sheet = new THREE.Mesh(
+                new THREE.BoxGeometry(sheetWidth, sheetThickness, 1.5),
+                mat
+            );
+            sheet.position.set(0, yPos, 0);
+            sheet.castShadow = true;
+            mainGroup.add(sheet);
+            sheets.push(sheet);
+        }
+
+        // ==========================================
+        // 3. GATE WITH ENERGY PULSE
+        // ==========================================
+        const gateMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffd93d,
+            metalness: 0.8,
+            roughness: 0.1,
+            transparent: true,
+            opacity: 0.3,
+            emissive: 0xffd93d,
+            emissiveIntensity: 0.1,
+            envMapIntensity: 1.0,
+        });
+
+        const gates = [];
+        for (let i = 0; i < 3; i++) {
+            const yPos = -0.5 + i * sheetSpacing;
+            const gate = new THREE.Mesh(
+                new THREE.BoxGeometry(sheetWidth + 0.6, sheetThickness + 0.14, 1.7),
+                gateMat
+            );
+            gate.position.set(0, yPos, 0);
+            mainGroup.add(gate);
+            gates.push(gate);
+        }
+
+        // ==========================================
+        // 4. SPACERS
+        // ==========================================
+        const spacerMat = new THREE.MeshPhysicalMaterial({
+            color: 0x3a5a7a,
+            metalness: 0.5,
+            roughness: 0.2,
+            transparent: true,
+            opacity: 0.2,
+            envMapIntensity: 0.8,
+        });
+
+        for (let i = 0; i < 3; i++) {
+            const yPos = -0.5 + i * sheetSpacing;
+            for (let side = -1; side <= 1; side += 2) {
+                const spacer = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.12, sheetThickness + 0.06, 1.7),
+                    spacerMat
+                );
+                spacer.position.set(side * 1.4, yPos, 0);
+                mainGroup.add(spacer);
+            }
+        }
+
+        // ==========================================
+        // 5. SOURCE / DRAIN WITH GLOW
+        // ==========================================
+        const contactMat = new THREE.MeshPhysicalMaterial({
+            color: 0xff6b6b,
+            metalness: 0.9,
+            roughness: 0.1,
+            transparent: true,
+            opacity: 0.85,
+            emissive: 0xff6b6b,
+            emissiveIntensity: 0.05,
+            envMapIntensity: 1.2,
+        });
+
+        const source = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.8, 1.7),
+            contactMat
+        );
+        source.position.set(-2.0, -0.3, 0);
+        mainGroup.add(source);
+
+        const drain = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.8, 1.7),
+            contactMat
+        );
+        drain.position.set(2.0, -0.3, 0);
+        mainGroup.add(drain);
+
+        // Source/Drain glow spheres
+        const sdGlowMat = new THREE.MeshPhysicalMaterial({
+            color: 0xff6b6b,
+            emissive: 0xff6b6b,
+            emissiveIntensity: 0.08,
+            transparent: true,
+            opacity: 0.04,
+            side: THREE.DoubleSide,
+        });
+        [-2.0, 2.0].forEach((x) => {
+            const glow = new THREE.Mesh(
+                new THREE.SphereGeometry(0.6, 20, 20),
+                sdGlowMat
+            );
+            glow.position.set(x, -0.3, 0);
+            glow.scale.set(0.8, 0.6, 0.8);
+            mainGroup.add(glow);
+        });
+
+        // ==========================================
+        // 6. DOPING VOXELS WITH ORGANIC PULSE
+        // ==========================================
+        const gridSize = 20;
+        const gridSpacing = 0.1;
+        const voxels = [];
+
+        for (let ix = 0; ix < gridSize; ix++) {
+            for (let iy = 0; iy < gridSize * 0.5; iy++) {
+                for (let iz = 0; iz < gridSize * 0.4; iz++) {
+                    const nx = (ix / gridSize - 0.5) * 2.8;
+                    const ny = (iy / (gridSize * 0.5) - 0.4) * 1.8;
+                    const nz = (iz / (gridSize * 0.4) - 0.5) * 1.4;
+
+                    if (Math.abs(nx) > 2.4 || Math.abs(ny) > 0.9 || Math.abs(nz) > 0.8) continue;
+
+                    const distFromCenter = Math.abs(nx);
+                    const isSourceDrain = distFromCenter > 1.0;
+                    const isChannel = distFromCenter < 0.6 && Math.abs(ny) < 0.3;
+
+                    let doping = 0;
+                    if (isSourceDrain) {
+                        doping = 0.7 + Math.random() * 0.3;
+                    } else if (isChannel) {
+                        doping = 0.05 + Math.random() * 0.12;
+                    } else {
+                        doping = Math.random() * 0.3;
+                    }
+
+                    if (Math.random() > 0.38) continue;
+
+                    const hue = 0.55 + doping * 0.35;
+                    const color = new THREE.Color().setHSL(hue, 0.85, 0.25 + doping * 0.45);
+                    const mat = new THREE.MeshPhysicalMaterial({
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 0.2 + doping * 0.4,
+                        transparent: true,
+                        opacity: 0.2 + doping * 0.55,
+                        roughness: 0.2,
+                        metalness: 0.02,
+                    });
+
+                    const voxel = new THREE.Mesh(
+                        new THREE.BoxGeometry(gridSpacing * 0.85, gridSpacing * 0.85, gridSpacing * 0.85),
+                        mat
+                    );
+                    voxel.position.set(nx, ny, nz);
+                    mainGroup.add(voxel);
+                    voxels.push(voxel);
+                }
+            }
+        }
+
+        // ==========================================
+        // 7. CURRENT FLOW - ENERGY STREAMS
+        // ==========================================
+        const flowCount = 300;
+        const flowGeo = new THREE.BufferGeometry();
+        const flowPos = new Float32Array(flowCount * 3);
+        const flowColors = new Float32Array(flowCount * 3);
+        const flowData = [];
+
+        for (let i = 0; i < flowCount; i++) {
+            const t = Math.random();
+            const x = -1.8 + t * 3.6;
+            const y = -0.5 + Math.random() * 1.0;
+            const z = (Math.random() - 0.5) * 1.3;
+            flowPos[i * 3] = x;
+            flowPos[i * 3 + 1] = y;
+            flowPos[i * 3 + 2] = z;
+
+            const c = new THREE.Color().setHSL(0.55 + Math.random() * 0.25, 0.9, 0.5 + Math.random() * 0.3);
+            flowColors[i * 3] = c.r;
+            flowColors[i * 3 + 1] = c.g;
+            flowColors[i * 3 + 2] = c.b;
+
+            flowData.push({
+                speed: 0.15 + Math.random() * 0.8,
+                offset: Math.random() * 100,
+                yAmp: 0.1 + Math.random() * 0.4,
+                zAmp: 0.1 + Math.random() * 0.4,
+                phase: Math.random() * Math.PI * 2,
+            });
+        }
+        flowGeo.setAttribute('position', new THREE.BufferAttribute(flowPos, 3));
+        flowGeo.setAttribute('color', new THREE.BufferAttribute(flowColors, 3));
+
+        const flowMat = new THREE.PointsMaterial({
+            size: 0.045,
+            transparent: true,
+            opacity: 0.6,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+        const flowParticles = new THREE.Points(flowGeo, flowMat);
+        mainGroup.add(flowParticles);
+
+        // ==========================================
+        // 8. NEURAL NETWORK - ORGANIC GROWTH
+        // ==========================================
+        const neuralGroup = new THREE.Group();
+        neuralGroup.visible = false;
+        mainGroup.add(neuralGroup);
+
+        const nnNodeCount = 150;
+        const nnNodes = [];
+        const nnPositions = [];
+        const nnColors = [];
+
+        for (let i = 0; i < nnNodeCount; i++) {
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const theta = 2 * Math.PI * i / goldenRatio;
+            const phi = Math.acos(1 - 2 * (i + 0.5) / nnNodeCount);
+            const r = 0.8 + Math.random() * 2.2;
+            const x = Math.sin(phi) * Math.cos(theta) * r;
+            const y = Math.sin(phi) * Math.sin(theta) * r * 0.6;
+            const z = Math.cos(phi) * r * 0.7;
+            nnPositions.push({ x, y, z });
+            nnColors.push(new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.8, 0.5));
+        }
+
+        nnPositions.forEach((pos, idx) => {
+            const col = nnColors[idx];
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: col,
+                emissive: col,
+                emissiveIntensity: 1.0,
+                transparent: true,
+                opacity: 0,
+                roughness: 0.05,
+                metalness: 0.02,
+                envMapIntensity: 0.5,
+            });
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(0.04, 10, 10),
+                mat
+            );
+            sphere.position.set(pos.x, pos.y, pos.z);
+            sphere.scale.set(0, 0, 0);
+            neuralGroup.add(sphere);
+            nnNodes.push(sphere);
+        });
+
+        // Neural connections - more organic
+        const nnLines = [];
+        for (let i = 0; i < nnPositions.length; i++) {
+            for (let j = i + 1; j < nnPositions.length; j++) {
+                const dx = nnPositions[i].x - nnPositions[j].x;
+                const dy = nnPositions[i].y - nnPositions[j].y;
+                const dz = nnPositions[i].z - nnPositions[j].z;
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (dist < 2.0 && Math.random() < 0.08) {
+                    const col1 = nnColors[i];
+                    const col2 = nnColors[j];
+                    const midCol = col1.clone().lerp(col2, 0.5);
+                    const mat = new THREE.LineBasicMaterial({
+                        color: midCol,
+                        transparent: true,
+                        opacity: 0,
+                        blending: THREE.AdditiveBlending,
+                    });
+                    const geo = new THREE.BufferGeometry();
+                    const verts = new Float32Array([
+                        nnPositions[i].x, nnPositions[i].y, nnPositions[i].z,
+                        nnPositions[j].x, nnPositions[j].y, nnPositions[j].z
+                    ]);
+                    geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+                    const line = new THREE.Line(geo, mat);
+                    neuralGroup.add(line);
+                    nnLines.push(line);
+                }
+            }
+        }
+
+        // ==========================================
+        // 9. GLOW RINGS - ENERGY FIELDS
+        // ==========================================
+        const ringMat = new THREE.MeshPhysicalMaterial({
+            color: 0x00d4ff,
+            emissive: 0x00d4ff,
+            emissiveIntensity: 0.2,
+            transparent: true,
+            opacity: 0,
+            roughness: 0.1,
+            metalness: 0.0,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+        });
+
+        const rings = [];
+        const ringColors = [0x00d4ff, 0x4D96FF, 0x9B59B6, 0xFF6B6B, 0xFFD93D];
+        for (let i = 0; i < 6; i++) {
+            const radius = 1.4 + i * 0.55;
+            const ringGeo = new THREE.TorusGeometry(radius, 0.007, 16, 80);
+            const ring = new THREE.Mesh(ringGeo, ringMat.clone());
+            ring.rotation.x = Math.PI / 2 + (i - 2.5) * 0.12;
+            ring.rotation.z = i * 0.3 + 0.5;
+            ring.material.opacity = 0;
+            ring.material.color.setHex(ringColors[i % ringColors.length]);
+            ring.material.emissive.setHex(ringColors[i % ringColors.length]);
+            mainGroup.add(ring);
+            rings.push(ring);
+        }
+
+        // ==========================================
+        // 10. PARTICLE TORNADO
+        // ==========================================
+        const tornadoCount = 600;
+        const tornadoGeo = new THREE.BufferGeometry();
+        const tornadoPos = new Float32Array(tornadoCount * 3);
+        const tornadoColors = new Float32Array(tornadoCount * 3);
+        const tornadoData = [];
+
+        for (let i = 0; i < tornadoCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 0.5 + Math.random() * 3.5;
+            const height = (Math.random() - 0.5) * 4;
+            tornadoPos[i * 3] = Math.cos(angle) * radius;
+            tornadoPos[i * 3 + 1] = height;
+            tornadoPos[i * 3 + 2] = Math.sin(angle) * radius;
+
+            const c = new THREE.Color().setHSL(0.55 + Math.random() * 0.2, 0.7, 0.3 + Math.random() * 0.3);
+            tornadoColors[i * 3] = c.r * 0.3;
+            tornadoColors[i * 3 + 1] = c.g * 0.3;
+            tornadoColors[i * 3 + 2] = c.b * 0.3;
+
+            tornadoData.push({
+                angle: angle,
+                radius: radius,
+                height: height,
+                speed: 0.2 + Math.random() * 0.4,
+                phase: Math.random() * Math.PI * 2,
+            });
+        }
+        tornadoGeo.setAttribute('position', new THREE.BufferAttribute(tornadoPos, 3));
+        tornadoGeo.setAttribute('color', new THREE.BufferAttribute(tornadoColors, 3));
+
+        const tornadoMat = new THREE.PointsMaterial({
+            size: 0.025,
+            transparent: true,
+            opacity: 0.12,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+        const tornadoParticles = new THREE.Points(tornadoGeo, tornadoMat);
+        scene.add(tornadoParticles);
+
+        // ==========================================
+        // 11. SPARKLE PARTICLES
+        // ==========================================
+        const sparkleCount = 200;
+        const sparkleGeo = new THREE.BufferGeometry();
+        const sparklePos = new Float32Array(sparkleCount * 3);
+        const sparkleData = [];
+
+        for (let i = 0; i < sparkleCount; i++) {
+            const radius = 0.3 + Math.random() * 2.8;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            sparklePos[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
+            sparklePos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.6;
+            sparklePos[i * 3 + 2] = Math.cos(phi) * radius * 0.8;
+            sparkleData.push({
+                speed: 0.2 + Math.random() * 0.6,
+                phase: Math.random() * Math.PI * 2,
+            });
+        }
+        sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePos, 3));
+
+        const sparkleMat = new THREE.PointsMaterial({
+            color: 0x00d4ff,
+            size: 0.025,
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+        const sparkles = new THREE.Points(sparkleGeo, sparkleMat);
+        mainGroup.add(sparkles);
+
+        // ==========================================
+        // 12. ATMOSPHERE PARTICLES
+        // ==========================================
+        const atmosCount = 600;
+        const atmosGeo = new THREE.BufferGeometry();
+        const atmosPos = new Float32Array(atmosCount * 3);
+        const atmosColors = new Float32Array(atmosCount * 3);
+
+        for (let i = 0; i < atmosCount; i++) {
+            const radius = 2 + Math.random() * 10;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            atmosPos[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
+            atmosPos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.4;
+            atmosPos[i * 3 + 2] = Math.cos(phi) * radius;
+            const c = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.4, 0.2);
+            atmosColors[i * 3] = c.r * 0.15;
+            atmosColors[i * 3 + 1] = c.g * 0.15;
+            atmosColors[i * 3 + 2] = c.b * 0.15;
+        }
+        atmosGeo.setAttribute('position', new THREE.BufferAttribute(atmosPos, 3));
+        atmosGeo.setAttribute('color', new THREE.BufferAttribute(atmosColors, 3));
+
+        const atmosMat = new THREE.PointsMaterial({
+            size: 0.025,
+            transparent: true,
+            opacity: 0.12,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+        const atmosParticles = new THREE.Points(atmosGeo, atmosMat);
+        scene.add(atmosParticles);
+
+        // ==========================================
+        // 13. VOLUMETRIC BEAM MESHES
+        // ==========================================
+        const beamMat = new THREE.MeshPhysicalMaterial({
+            color: 0x00d4ff,
+            emissive: 0x00d4ff,
+            emissiveIntensity: 0.02,
+            transparent: true,
+            opacity: 0.015,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const beam = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.02, 4),
+                beamMat
+            );
+            beam.position.set(Math.cos(angle) * 0.5, 0, Math.sin(angle) * 0.5);
+            beam.rotation.y = -angle;
+            beam.rotation.x = 0.3;
+            mainGroup.add(beam);
+        }
+
+        // ==========================================
+        // ANIMATION STATE
+        // ==========================================
+        let progress = 0;
+        let isAnimating = true;
+        let time = 0;
+
+        // ==========================================
+        // CINEMATIC EASING
+        // ==========================================
+        function easeOutBack(x) {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+        }
+
+        function easeOutElastic(x) {
+            const c4 = (2 * Math.PI) / 3;
+            return x === 0 ? 0 : x === 1 ? 1 :
+                Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
+        }
+
+        function easeOutCubic(x) {
+            return 1 - Math.pow(1 - x, 3);
+        }
+
+        function easeInOutCubic(x) {
+            return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        }
+
+        function easeInOutQuart(x) {
+            return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+        }
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        // ==========================================
+        // RESET
+        // ==========================================
+        function resetAnimation() {
+            progress = 0;
+            isAnimating = true;
+            neuralGroup.visible = false;
+            nnNodes.forEach(node => {
+                node.scale.set(0, 0, 0);
+                node.material.opacity = 0;
+            });
+            nnLines.forEach(line => line.material.opacity = 0);
+            sparkleMat.opacity = 0;
+        }
+
+        document.addEventListener('click', resetAnimation);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') resetAnimation();
+        });
+
+        // ==========================================
+        // MAIN ANIMATION
+        // ==========================================
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+
+            if (isAnimating) {
+                progress += 0.0025;
+                if (progress > 1) {
+                    progress = 1;
+                    isAnimating = false;
+                    setTimeout(resetAnimation, 4000);
+                }
+            }
+
+            const t = Math.min(progress, 1);
+
+            // ---- PHASE 1: BUILD DEVICE ----
+            if (t < 0.4) {
+                const phase1 = t / 0.4;
+                const eased = easeOutBack(Math.min(phase1, 1));
+
+                substrate.material.opacity = 0.6 * eased;
+
+                sheets.forEach((sheet, i) => {
+                    const delay = i * 0.07;
+                    const st = Math.max(0, Math.min(1, (phase1 - delay) * 2.8));
+                    const scale = easeOutBack(st);
+                    sheet.scale.set(scale, scale, scale);
+                    sheet.material.opacity = 0.92 * st;
+                    sheet.material.emissiveIntensity = 0.1 + st * 0.1;
+                });
+
+                gates.forEach((gate, i) => {
+                    const delay = i * 0.05 + 0.05;
+                    const st = Math.max(0, Math.min(1, (phase1 - delay) * 2.5));
+                    gate.scale.set(st, st, st);
+                    gate.material.opacity = 0.3 * st;
+                });
+
+                source.material.opacity = 0.85 * eased;
+                drain.material.opacity = 0.85 * eased;
+
+                voxels.forEach((voxel, i) => {
+                    const delay = (i / voxels.length) * 0.25;
+                    const st = Math.max(0, Math.min(1, (phase1 - delay) * 3.5));
+                    const scale = easeOutCubic(st);
+                    voxel.scale.set(scale, scale, scale);
+                    voxel.material.opacity = (0.2 + Math.random() * 0.25) * st;
+                    voxel.material.emissiveIntensity = 0.2 + st * 0.3;
+                });
+
+                flowMat.opacity = 0.6 * eased;
+
+                rings.forEach((ring, i) => {
+                    const delay = 0.12 + i * 0.04;
+                    const st = Math.max(0, Math.min(1, (phase1 - delay) * 3));
+                    ring.material.opacity = 0.02 * st;
+                });
+
+                neuralGroup.visible = false;
+                sparkleMat.opacity = 0;
+
+                pointLight1.intensity = 0.6 * eased;
+                pointLight2.intensity = 0.4 * eased;
+                pointLight3.intensity = 0.2 * eased;
+
+                // Grid lines
+                mainGroup.children.forEach(child => {
+                    if (child.isLine) {
+                        child.material.opacity = 0.03 * eased;
+                    }
+                });
+
+                // Beams
+                mainGroup.children.forEach(child => {
+                    if (child.isMesh && child.geometry.type === 'PlaneGeometry') {
+                        child.material.opacity = 0.015 * eased;
+                    }
+                });
+            }
+
+            // ---- PHASE 2: NEURAL NETWORK ----
+            else if (t < 0.7) {
+                const phase2 = (t - 0.4) / 0.3;
+                const eased = easeOutElastic(phase2);
+
+                neuralGroup.visible = true;
+
+                nnNodes.forEach((node, i) => {
+                    const delay = (i / nnNodes.length) * 0.18;
+                    const st = Math.max(0, Math.min(1, (phase2 - delay) * 3));
+                    const scale = easeOutBack(st);
+                    node.scale.set(scale, scale, scale);
+                    node.material.opacity = scale * 0.85;
+
+                    const hue = (i / nnNodes.length + time * 0.012 + phase2 * 0.08) % 1;
+                    const col = new THREE.Color().setHSL(hue, 0.85, 0.5);
+                    node.material.color.set(col);
+                    node.material.emissive.set(col);
+                });
+
+                nnLines.forEach((line, i) => {
+                    const delay = 0.12 + (i / nnLines.length) * 0.2;
+                    const st = Math.max(0, Math.min(1, (phase2 - delay) * 4));
+                    line.material.opacity = st * 0.06;
+                });
+
+                sparkleMat.opacity = eased * 0.25;
+
+                sheets.forEach(sheet => {
+                    sheet.material.opacity = 0.92 * (1 - phase2 * 0.15);
+                });
+                source.material.opacity = 0.85 * (1 - phase2 * 0.12);
+                drain.material.opacity = 0.85 * (1 - phase2 * 0.12);
+                flowMat.opacity = 0.6 * (1 - phase2 * 0.15);
+
+                voxels.forEach((voxel, i) => {
+                    voxel.material.emissiveIntensity = 0.2 + phase2 * 0.35;
+                });
+
+                rings.forEach((ring, i) => {
+                    const pulse = 0.5 + Math.sin(time * 0.001 + i * 0.5 + phase2 * 2) * 0.3 + 0.5;
+                    ring.material.opacity = 0.02 * pulse;
+                    const hue = (i / rings.length + time * 0.004) % 1;
+                    ring.material.color.setHSL(hue, 0.7, 0.5);
+                    ring.material.emissive.setHSL(hue, 0.7, 0.5);
+                    ring.rotation.z += 0.004;
+                });
+
+                pointLight1.intensity = 0.6 + Math.sin(time * 0.4 + phase2 * 3) * 0.2;
+                pointLight2.intensity = 0.4 + Math.sin(time * 0.3 + phase2 * 2) * 0.15;
+                pointLight3.intensity = 0.2 + Math.sin(time * 0.2 + phase2 * 2) * 0.1;
+
+                // Tornado intensifies
+                tornadoMat.opacity = 0.12 + phase2 * 0.08;
+            }
+
+            // ---- PHASE 3: FUSION ----
+            else {
+                const phase3 = (t - 0.7) / 0.3;
+                const eased = easeInOutQuart(phase3);
+
+                neuralGroup.visible = true;
+
+                nnNodes.forEach((node, i) => {
+                    const pulse = 1 + Math.sin(time * 0.002 + i * 0.5) * 0.12;
+                    const baseScale = 0.8 + eased * 0.2;
+                    node.scale.set(pulse * baseScale, pulse * baseScale, pulse * baseScale);
+                    node.material.opacity = 0.6 + Math.sin(time * 0.003 + i * 0.3) * 0.25 + 0.25;
+                    node.material.emissiveIntensity = 0.4 + Math.sin(time * 0.002 + i * 0.7) * 0.3 + 0.3;
+
+                    const hue = (i / nnNodes.length + time * 0.008 + phase3 * 0.04) % 1;
+                    const col = new THREE.Color().setHSL(hue, 0.85, 0.5);
+                    node.material.color.set(col);
+                    node.material.emissive.set(col);
+                });
+
+                nnLines.forEach((line, i) => {
+                    const pulse = 0.5 + Math.sin(time * 0.001 + i * 0.3 + phase3 * 2) * 0.4 + 0.5;
+                    line.material.opacity = 0.05 * pulse;
+                });
+
+                sparkleMat.opacity = 0.25 + eased * 0.35;
+
+                sheets.forEach((sheet, i) => {
+                    sheet.material.opacity = 0.92 * (0.65 + eased * 0.35);
+                    const glow = 0.1 + eased * 0.2 + Math.sin(time * 0.3 + i) * 0.02;
+                    sheet.material.emissiveIntensity = glow;
+                });
+
+                source.material.opacity = 0.85 * (0.65 + eased * 0.35);
+                drain.material.opacity = 0.85 * (0.65 + eased * 0.35);
+                source.material.emissiveIntensity = 0.05 + eased * 0.15;
+                drain.material.emissiveIntensity = 0.05 + eased * 0.15;
+
+                flowMat.opacity = 0.6 * (0.65 + eased * 0.35);
+
+                voxels.forEach((voxel, i) => {
+                    const pulse = 1 + Math.sin(time * 0.3 + i * 0.012 + phase3 * 0.5) * 0.06;
+                    const baseSize = gridSpacing * 0.85;
+                    voxel.scale.set(
+                        baseSize * pulse / (gridSpacing * 0.85),
+                        baseSize * pulse / (gridSpacing * 0.85),
+                        baseSize * pulse / (gridSpacing * 0.85)
+                    );
+                    voxel.material.emissiveIntensity = 0.2 + eased * 0.4;
+                });
+
+                rings.forEach((ring, i) => {
+                    const pulse = 0.5 + Math.sin(time * 0.001 + i * 0.5 + phase3 * 3) * 0.4 + 0.5;
+                    ring.material.opacity = 0.025 * pulse * (0.5 + eased * 0.5);
+                    ring.rotation.z += 0.005;
+                });
+
+                neuralGroup.rotation.y = Math.sin(time * 0.0002 + eased * 0.5) * 0.1;
+                neuralGroup.rotation.x = Math.sin(time * 0.0001 + eased * 0.3) * 0.02;
+
+                pointLight1.intensity = 0.6 + eased * 0.6 + Math.sin(time * 0.3) * 0.15;
+                pointLight2.intensity = 0.4 + eased * 0.4 + Math.sin(time * 0.25) * 0.1;
+                pointLight3.intensity = 0.2 + eased * 0.3 + Math.sin(time * 0.2) * 0.08;
+
+                tornadoMat.opacity = 0.12 + eased * 0.12;
+            }
+
+            // ---- CONTINUOUS EFFECTS ----
+
+            // Flow particles
+            const pos = flowParticles.geometry.attributes.position.array;
+            const cols = flowParticles.geometry.attributes.color.array;
+            for (let i = 0; i < flowCount; i++) {
+                pos[i * 3] += 0.01 * flowData[i].speed;
+                pos[i * 3 + 1] += Math.sin(time * 2.5 + flowData[i].offset) * 0.003;
+                pos[i * 3 + 2] += Math.cos(time * 2 + flowData[i].offset) * 0.003;
+
+                if (pos[i * 3] > 2.0) {
+                    pos[i * 3] = -2.0;
+                    pos[i * 3 + 1] = -0.5 + Math.random() * 1.0;
+                    pos[i * 3 + 2] = (Math.random() - 0.5) * 1.3;
+
+                    const c = new THREE.Color().setHSL(0.55 + Math.random() * 0.25, 0.9, 0.5 + Math.random() * 0.3);
+                    cols[i * 3] = c.r;
+                    cols[i * 3 + 1] = c.g;
+                    cols[i * 3 + 2] = c.b;
+                }
+            }
+            flowParticles.geometry.attributes.position.needsUpdate = true;
+            flowParticles.geometry.attributes.color.needsUpdate = true;
+
+            // Tornado particles
+            const tPos = tornadoParticles.geometry.attributes.position.array;
+            for (let i = 0; i < tornadoCount; i++) {
+                const data = tornadoData[i];
+                const angle = data.angle + time * 0.001 * data.speed;
+                const radius = data.radius + Math.sin(time * 0.001 * data.speed + data.phase) * 0.2;
+                const height = data.height + Math.sin(time * 0.001 * data.speed * 0.5 + data.phase) * 0.3;
+
+                tPos[i * 3] = Math.cos(angle + time * 0.001 * 0.3) * radius;
+                tPos[i * 3 + 1] = height * 0.8 + Math.sin(time * 0.001 * data.speed + data.phase) * 0.2;
+                tPos[i * 3 + 2] = Math.sin(angle + time * 0.001 * 0.3) * radius;
+            }
+            tornadoParticles.geometry.attributes.position.needsUpdate = true;
+
+            // Sparkles
+            const spPos = sparkles.geometry.attributes.position.array;
+            for (let i = 0; i < sparkleCount; i++) {
+                const data = sparkleData[i];
+                const angle = time * 0.001 * data.speed + data.phase;
+                const radius = 0.3 + Math.sin(time * 0.001 * data.speed * 0.5 + data.phase) * 0.3 + 0.5;
+                spPos[i * 3] = Math.cos(angle + time * 0.15) * radius;
+                spPos[i * 3 + 1] = Math.sin(angle * 0.7 + time * 0.12) * radius * 0.6;
+                spPos[i * 3 + 2] = Math.sin(angle * 0.5 + time * 0.1) * radius * 0.8;
+            }
+            sparkles.geometry.attributes.position.needsUpdate = true;
+
+            // Device rotation
+            mainGroup.rotation.y = Math.sin(time * 0.05 + t * 0.15) * 0.12;
+            mainGroup.rotation.x = Math.sin(time * 0.03) * 0.02;
+
+            // Atmosphere
+            atmosParticles.rotation.y += 0.0001;
+            atmosParticles.rotation.x += 0.00005;
+
+            // Camera cinematic orbit
+            const camOrbit = time * 0.00003 + t * 0.12;
+            const camRadius = 7 + Math.sin(time * 0.00005 + t) * 0.3;
+            camera.position.x = Math.sin(camOrbit) * 3.8;
+            camera.position.z = 6 + Math.sin(camOrbit * 0.7) * 0.5;
+            camera.position.y = 2.2 + Math.sin(time * 0.00006 + t) * 0.3;
+            camera.lookAt(0, 0, 0);
+
+            // Render
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // ==========================================
+        // RESIZE
+        // ==========================================
+        window.addEventListener('resize', () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        });
+
+        console.log('🎬 FET2SNN - Ultimate Cinematic 3D');
+        console.log('✨ Volumetric light beams, organic neural network, particle tornado');
+        console.log('Click or press "R" to restart');
+    

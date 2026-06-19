@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FET2SNN – Advanced TCAD Viewer (n10_des)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px}
+body{background:radial-gradient(ellipse at 35% 35%,#eef2fa 0%,#cdd4e5 55%,#a8b4cc 100%)}
+
+/* Layout */
+#wrap{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+#tb{height:48px;background:rgba(238,244,254,.98);backdrop-filter:blur(10px);
+  border-bottom:1px solid #8da0c0;display:flex;align-items:center;padding:0 12px;
+  gap:7px;z-index:100;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+#main{flex:1;display:flex;overflow:hidden}
+#vp{flex:1;position:relative;overflow:hidden}
+#rp{width:268px;min-width:268px;background:rgba(234,240,252,.98);border-left:1px solid #8da0c0;
+  display:flex;flex-direction:column;box-shadow:-2px 0 8px rgba(0,0,0,.1);
+  transition:width .25s,min-width .25s}
+#rp.col{width:0;min-width:0;border-left:none}
+#rscroll{flex:1;overflow-y:auto;padding:8px 10px 100px}
+#rscroll::-webkit-scrollbar{width:4px}
+#rscroll::-webkit-scrollbar-thumb{background:#9aaac0;border-radius:4px}
+
+/* Top bar elements */
+.logo{font-weight:800;color:#1a3a70;font-size:.9rem;white-space:nowrap}
+.logo small{color:#5a7aaa;font-weight:400;font-size:.68rem;margin-left:5px}
+.sep{width:1px;height:22px;background:#8da0c0;flex-shrink:0}
+.sp{flex:1}
+.btn{background:rgba(255,255,255,.85);border:1px solid #8da0c0;color:#1a3a70;
+  padding:3px 10px;border-radius:5px;font-size:.69rem;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;text-decoration:none;
+  transition:all .15s;white-space:nowrap;flex-shrink:0}
+.btn:hover{background:#d4e0f8;border-color:#3a6ad8}
+.btn.on{background:#3a6ad8;border-color:#2a5ac8;color:#fff}
+.btn.amber.on{background:#d97706;border-color:#b45309;color:#fff}
+.vmg{display:flex;border:1px solid #8da0c0;border-radius:5px;overflow:hidden;flex-shrink:0}
+.vmg .btn{border:none;border-radius:0;border-right:1px solid #8da0c0;padding:3px 9px}
+.vmg .btn:last-child{border-right:none}
+.camg{display:flex;border:1px solid #8da0c0;border-radius:5px;overflow:hidden;flex-shrink:0}
+.camg .btn{border:none;border-radius:0;border-right:1px solid #8da0c0;padding:3px 8px;font-size:.66rem}
+.camg .btn:last-child{border-right:none}
+
+/* Overlays */
+#tcad-title{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  font-size:.79rem;font-weight:700;color:#1a2540;z-index:50;pointer-events:none;
+  letter-spacing:.4px;text-shadow:0 1px 3px rgba(255,255,255,.9)}
+
+/* Colorbar */
+#cbar{position:absolute;right:14px;top:16px;background:rgba(242,246,255,.97);
+  border:1px solid #8da0c0;border-radius:5px;padding:9px 11px;z-index:50;
+  box-shadow:1px 1px 6px rgba(0,0,0,.15);font-family:'Courier New',monospace}
+#cbar .ct{font-size:.65rem;font-weight:700;color:#1a2540;margin-bottom:7px;font-family:'Segoe UI',sans-serif}
+.cb-body{display:flex;gap:6px}
+.cb-bar{width:16px;height:160px;border:1px solid #8da0c0;
+  background:linear-gradient(to top,
+    #00006a,#1a00cc 14%,#00aaee 28%,#00cc00 42%,
+    #aacc00 56%,#ffcc00 70%,#ff6600 84%,#ff0000 100%)}
+.cb-vs{display:flex;flex-direction:column;justify-content:space-between;height:160px}
+.cb-v{font-size:.56rem;color:#1a2540;white-space:nowrap}
+
+/* Stats */
+#stats{position:absolute;top:16px;left:14px;background:rgba(238,244,255,.95);
+  border:1px solid #8da0c0;border-radius:5px;padding:7px 11px;font-size:.67rem;
+  line-height:1.9;color:#2a3a60;z-index:50;pointer-events:none;
+  box-shadow:1px 1px 5px rgba(0,0,0,.1)}
+#stats b{color:#0a1a40;font-weight:700}
+#stats .hi{color:#cc2200}
+
+/* Cut plane controls overlay */
+#cutPanel{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  background:rgba(238,244,255,.97);border:1px solid #8da0c0;border-radius:8px;
+  padding:10px 18px;z-index:50;display:none;min-width:400px;
+  box-shadow:2px 2px 10px rgba(0,0,0,.15)}
+#cutPanel.show{display:block}
+.cp-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cp-row:last-child{margin-bottom:0}
+.cp-lbl{font-size:.7rem;color:#1a2540;font-weight:600;min-width:80px}
+.cp-sl{flex:1;height:4px;-webkit-appearance:none;appearance:none;border-radius:4px;cursor:pointer;outline:none;
+  background:linear-gradient(90deg,#d97706 var(--cp,50%),#c0cad8 var(--cp,50%))}
+.cp-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:#d97706;border:2px solid #fff;box-shadow:0 0 4px rgba(217,119,6,.6)}
+.cp-val{font-size:.68rem;font-weight:700;color:#d97706;font-family:monospace;min-width:50px;text-align:right}
+
+/* Panel styles */
+.sh{font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:#5a7aaa;
+  padding:9px 0 5px;border-bottom:1px solid #bfcadc;margin-bottom:7px;
+  display:flex;align-items:center;justify-content:space-between}
+.sh-l{display:flex;align-items:center;gap:5px}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pr{margin-bottom:7px}
+.pt{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.pl{font-size:.71rem;color:#1a2540}
+.pv{font-size:.67rem;font-weight:700;color:#1a5ac8;font-family:monospace;
+  background:#fff;border:1px solid #b0bdd0;border-radius:3px;padding:1px 5px;min-width:48px;text-align:right}
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,#3a6ad8 var(--p,50%),#c0cad8 var(--p,50%));
+  border-radius:4px;cursor:pointer;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  background:#3a6ad8;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 4px rgba(58,106,216,.5)}
+.tr{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.tr label{font-size:.71rem;color:#1a2540}
+.sw{position:relative;width:32px;height:18px;flex-shrink:0}
+.sw input{display:none}
+.sw .sl{position:absolute;inset:0;background:#b0bdd0;border-radius:18px;cursor:pointer;transition:.2s}
+.sw .sl::before{content:'';position:absolute;left:3px;top:3px;width:12px;height:12px;
+  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+.sl{background:#3a6ad8}
+.sw input:checked+.sl::before{left:17px}
+
+/* Status bar */
+#sb{position:absolute;bottom:10px;right:300px;background:rgba(238,244,255,.9);
+  border:1px solid #8da0c0;border-radius:4px;padding:3px 12px;
+  font-size:.67rem;color:#5a7aaa;z-index:50;pointer-events:none}
+
+/* Legend */
+#leg{position:absolute;bottom:40px;left:14px;background:rgba(240,246,255,.97);
+  border:1px solid #8da0c0;border-radius:5px;padding:9px 12px;z-index:50;
+  box-shadow:1px 1px 5px rgba(0,0,0,.12);transition:transform .3s}
+#leg.hid{transform:translateX(-210px)}
+.lt{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#5a7aaa;margin-bottom:7px}
+.li{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:.69rem;color:#1a2540}
+.ls{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,.15)}
+
+/* Loading */
+#ld{position:fixed;inset:0;background:radial-gradient(ellipse at center,#eef2fa,#c8d4e8);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+#ld.done{opacity:0;pointer-events:none}
+.ring{width:48px;height:48px;border:3px solid #c0ccd8;border-top-color:#3a6ad8;
+  border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#ld p{color:#2a4a80;font-size:.82rem;font-weight:600}
+#ld .sub{font-size:.7rem;color:#5a7aaa;margin-top:6px}
+
+/* CSS2D labels */
+.lbl3d{background:rgba(238,245,255,.93);border:1px solid;border-radius:3px;
+  padding:2px 7px;font-size:.65rem;font-weight:700;pointer-events:none;
+  white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.18);font-family:'Segoe UI',sans-serif}
+</style>
+<script>
+function backToTool() {
+    if (window.parent && window.parent !== window && typeof window.parent.showTab === 'function') {
+        window.parent.showTab('page-device');
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+</script>
+</head>
+<body>
+
+<div id="ld">
+  <div class="ring"></div>
+  <p id="lmsg">Initialising TCAD Viewer…</p>
+  <div class="sub" id="lsub">Loading Three.js</div>
+</div>
+
+<div id="wrap">
+  <!-- TOP BAR -->
+  <div id="tb">
+    <div class="logo">FET2SNN <small>Advanced TCAD · n10_des · GAA 3-Stack</small></div>
+    <div class="sep"></div>
+
+    <!-- View modes -->
+    <div class="vmg">
+      <button class="btn on" id="vm-solid" title="Solid view">▣ Solid</button>
+      <button class="btn"    id="vm-wire"  title="Wireframe only">⊞ Wire</button>
+      <button class="btn"    id="vm-comb"  title="Combined">⊡ Comb</button>
+    </div>
+
+    <!-- Camera presets -->
+    <div class="camg">
+      <button class="btn on" id="cam-iso"   title="Isometric view">⬡ Iso</button>
+      <button class="btn"    id="cam-front" title="Front view (Y-Z cross-section)">◫ Front</button>
+      <button class="btn"    id="cam-side"  title="Side view (X-Z)">◻ Side</button>
+      <button class="btn"    id="cam-top"   title="Top view (X-Y)">⊤ Top</button>
+    </div>
+
+    <div class="sep"></div>
+    <button class="btn amber" id="btnCut"  title="Section cut plane">✂ Section Cut</button>
+    <button class="btn on"    id="btnFEM"  title="Toggle FEM mesh">⊠ FEM Mesh</button>
+    <button class="btn on"    id="btnRP"   title="Parameters panel">⚙ Params</button>
+    <button class="btn on"    id="btnLeg"  title="Legend">▤ Legend</button>
+    <button class="btn"       id="btnDef"  title="Reset all to defaults">↺ Reset</button>
+    <div class="sp"></div>
+    <a href="#" onclick="backToTool(); return false;" class="btn">← Tool</a>
+  </div>
+
+  <div id="main">
+    <div id="vp">
+      <!-- Overlays -->
+      <div id="tcad-title">n10_des &nbsp;·&nbsp; DopingConcentration (cm⁻³) &nbsp;·&nbsp; Nanosheet GAA FET</div>
+
+      <!-- Colorbar -->
+      <div id="cbar">
+        <div class="ct">DopingConc. (cm⁻³)</div>
+        <div class="cb-body">
+          <div class="cb-bar"></div>
+          <div class="cb-vs">
+            <span class="cb-v" style="color:#cc0000">5.944e+20</span>
+            <span class="cb-v" style="color:#bb5500">1.109e+18</span>
+            <span class="cb-v" style="color:#7a9900">2.067e+15</span>
+            <span class="cb-v" style="color:#009900">3.790e+12</span>
+            <span class="cb-v" style="color:#0088bb">−3.477e+13</span>
+            <span class="cb-v" style="color:#0022cc">−1.865e+16</span>
+            <span class="cb-v" style="color:#00008a">−1.000e+19</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="stats">
+        <b>Hexagonal prisms:</b> S · D · Gate · Spacers<br>
+        <b>Mesh cells:</b> <span id="mi-c">–</span> &nbsp;|&nbsp; <b>Tris:</b> <span id="mi-t">–</span><br>
+        <b>Res:</b> <span id="mi-r">1.0×</span> &nbsp;|&nbsp;
+        <b class="hi" id="mi-cut" style="display:none">✂ CUT ACTIVE</b>
+      </div>
+
+      <!-- Section cut controls (shown when cut is active) -->
+      <div id="cutPanel">
+        <div style="font-size:.72rem;font-weight:700;color:#92400e;margin-bottom:8px">
+          ✂ Section Cut Plane &nbsp;<span style="font-weight:400;color:#6b7280;font-size:.66rem">(drag to reveal interior doping profile)</span>
+        </div>
+        <div class="cp-row">
+          <span class="cp-lbl">X-Cut (nm)</span>
+          <input type="range" class="cp-sl" id="cp-x" min="-30" max="30" step="0.5" value="0">
+          <span class="cp-val" id="cpv-x">0.0</span>
+        </div>
+        <div class="cp-row">
+          <span class="cp-lbl">Y-Cut (nm)</span>
+          <input type="range" class="cp-sl" id="cp-y" min="-30" max="20" step="0.5" value="0">
+          <span class="cp-val" id="cpv-y">0.0</span>
+        </div>
+        <div class="cp-row" style="margin-top:5px">
+          <span style="font-size:.66rem;color:#6b7280">Cut face shows live doping map. FEM mesh overlaid in magenta.</span>
+        </div>
+      </div>
+
+      <div id="sb">🖱 Drag=rotate · Scroll=zoom · Right=pan</div>
+    </div>
+
+    <!-- Right Panel -->
+    <div id="rp">
+      <div id="rscroll">
+
+        <div class="sh">
+          <div class="sh-l"><span class="sd" style="background:#3a6ad8"></span>Mesh Quality</div>
+        </div>
+        <div class="pr"><div class="pt"><span class="pl">Resolution (coarse ↔ fine)</span><span class="pv" id="v-res">1.0</span></div><input type="range" id="s-res" min="0.5" max="3.0" step="0.1" value="1.0"></div>
+        <div class="pr"><div class="pt"><span class="pl">Interface grading β</span><span class="pv" id="v-beta">2.5</span></div><input type="range" id="s-beta" min="1.0" max="6.0" step="0.1" value="2.5"></div>
+        <div class="pr"><div class="pt"><span class="pl">FEM mesh density</span><span class="pv" id="v-meshd">1.0</span></div><input type="range" id="s-meshd" min="0.4" max="2.5" step="0.1" value="1.0"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#dd1100"></span>Source / Drain (Hex Prism)</div></div>
+        <div class="pr"><div class="pt"><span class="pl">S/D Radius (nm)</span><span class="pv" id="v-sdR">26</span></div><input type="range" id="s-sdR" min="15" max="42" step="0.5" value="26"></div>
+        <div class="pr"><div class="pt"><span class="pl">S/D Length (nm)</span><span class="pv" id="v-sdL">5</span></div><input type="range" id="s-sdL" min="2" max="20" step="0.5" value="5"></div>
+        <div class="pr"><div class="pt"><span class="pl">N⁺ Doping (×10²⁰ cm⁻³)</span><span class="pv" id="v-sdDop">5.944</span></div><input type="range" id="s-sdDop" min="1" max="10" step="0.1" value="5.944"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#ff8800"></span>Gate Metal (Hex Prism)</div></div>
+        <div class="pr"><div class="pt"><span class="pl">Gate Radius (nm)</span><span class="pv" id="v-gR">26</span></div><input type="range" id="s-gR" min="15" max="45" step="0.5" value="26"></div>
+        <div class="pr"><div class="pt"><span class="pl">Gate Length (nm)</span><span class="pv" id="v-gL">12</span></div><input type="range" id="s-gL" min="5" max="30" step="0.5" value="12"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#88aa44"></span>Spacers (Hex Prism)</div></div>
+        <div class="pr"><div class="pt"><span class="pl">Spacer Radius (nm)</span><span class="pv" id="v-spR">26</span></div><input type="range" id="s-spR" min="15" max="42" step="0.5" value="26"></div>
+        <div class="pr"><div class="pt"><span class="pl">Spacer Length (nm)</span><span class="pv" id="v-spL">5</span></div><input type="range" id="s-spL" min="2" max="15" step="0.5" value="5"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#90c8e8"></span>Nanosheets (Cuboids)</div></div>
+        <div class="pr"><div class="pt"><span class="pl">Thickness (nm)</span><span class="pv" id="v-nsT">5.0</span></div><input type="range" id="s-nsT" min="2" max="12" step="0.5" value="5"></div>
+        <div class="pr"><div class="pt"><span class="pl">Width (nm)</span><span class="pv" id="v-nsW">24</span></div><input type="range" id="s-nsW" min="10" max="40" step="1" value="24"></div>
+        <div class="pr"><div class="pt"><span class="pl">Stack Spacing (nm)</span><span class="pv" id="v-nsSp">9.4</span></div><input type="range" id="s-nsSp" min="4" max="22" step="0.5" value="9.4"></div>
+        <div class="pr"><div class="pt"><span class="pl">N-doping (×10¹⁷ cm⁻³)</span><span class="pv" id="v-nsDop">2.0</span></div><input type="range" id="s-nsDop" min="0.1" max="10" step="0.1" value="2.0"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#6ab0d4"></span>Gate Dielectrics</div></div>
+        <div class="pr"><div class="pt"><span class="pl">HfO₂ Thickness (nm)</span><span class="pv" id="v-hkT">1.5</span></div><input type="range" id="s-hkT" min="0.5" max="5" step="0.1" value="1.5"></div>
+        <div class="pr"><div class="pt"><span class="pl">InterfacialOx (nm)</span><span class="pv" id="v-ioxT">0.7</span></div><input type="range" id="s-ioxT" min="0.2" max="3" step="0.1" value="0.7"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#00bbbb"></span>Substrate</div></div>
+        <div class="pr"><div class="pt"><span class="pl">STI Depth (nm)</span><span class="pv" id="v-stiD">27.5</span></div><input type="range" id="s-stiD" min="10" max="50" step="0.5" value="27.5"></div>
+        <div class="pr"><div class="pt"><span class="pl">PTS Thickness (nm)</span><span class="pv" id="v-ptsT">15</span></div><input type="range" id="s-ptsT" min="5" max="40" step="0.5" value="15"></div>
+        <div class="pr"><div class="pt"><span class="pl">P⁻ Doping (×10¹⁹ cm⁻³)</span><span class="pv" id="v-ptsDop">1.0</span></div><input type="range" id="s-ptsDop" min="0.1" max="5" step="0.1" value="1.0"></div>
+
+        <div class="sh"><div class="sh-l"><span class="sd" style="background:#5c7ff6"></span>Visibility</div></div>
+        <div class="tr"><label>Source / Drain (Hex)</label><label class="sw"><input type="checkbox" id="t-sd" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>Gate Metal (Hex)</label><label class="sw"><input type="checkbox" id="t-gate" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>Spacers (Hex)</label><label class="sw"><input type="checkbox" id="t-sp" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>Nanosheets</label><label class="sw"><input type="checkbox" id="t-ns" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>HfO₂ + InterfacialOx</label><label class="sw"><input type="checkbox" id="t-hk" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>STI Oxide</label><label class="sw"><input type="checkbox" id="t-sti" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>PTS Substrate</label><label class="sw"><input type="checkbox" id="t-pts" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>Contacts + Labels</label><label class="sw"><input type="checkbox" id="t-con" checked><span class="sl"></span></label></div>
+        <div class="tr"><label>Auto-Rotate</label><label class="sw"><input type="checkbox" id="t-rot"><span class="sl"></span></label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div id="leg">
+  <div class="lt">Material → Doping Color</div>
+  <div class="li"><div class="ls" style="background:#dd0000"></div>Source/Drain (N⁺ ~6×10²⁰)</div>
+  <div class="li"><div class="ls" style="background:#ff8800"></div>Gate Metal (~10²⁰)</div>
+  <div class="li"><div class="ls" style="background:#cccc00"></div>Nanosheet N-ch (~10¹⁷)</div>
+  <div class="li"><div class="ls" style="background:#88bb44"></div>Spacer Si₃N₄ (intrinsic)</div>
+  <div class="li"><div class="ls" style="background:#55aa55"></div>HfO₂ / InterfacialOx</div>
+  <div class="li"><div class="ls" style="background:#44aa88"></div>STI Oxide (intrinsic)</div>
+  <div class="li"><div class="ls" style="background:#00cccc"></div>Substrate (~−3e13)</div>
+  <div class="li"><div class="ls" style="background:#2244cc"></div>PTS P⁻ (~−10¹⁹)</div>
+  <div class="li"><div class="ls" style="background:#ff00ff;border-radius:50%"></div>FEM triangular mesh</div>
+  <div class="li"><div class="ls" style="background:transparent;border:2px dashed #d97706"></div>Section cut face</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/renderers/CSS2DRenderer.js"></script>
+
+<script>
+(function(){
+'use strict';
+var ld=document.getElementById('ld'),lmsg=document.getElementById('lmsg'),lsub=document.getElementById('lsub');
+if(typeof THREE==='undefined'){lmsg.textContent='ERROR: Three.js failed to load';return;}
+lsub.textContent='Building geometry…';
+
+/* ══════════════════════════════════════════
+   SCENE + RENDERER
+══════════════════════════════════════════ */
+var vp=document.getElementById('vp');
+var W=function(){return vp.clientWidth;};
+var H=function(){return vp.clientHeight;};
+
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(W(),H());
+renderer.setClearColor(0,0);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.localClippingEnabled=true; // Needed for section cut
+vp.appendChild(renderer.domElement);
+
+var lr=new THREE.CSS2DRenderer();
+lr.setSize(W(),H());
+lr.domElement.style.cssText='position:absolute;top:0;left:0;pointer-events:none';
+vp.appendChild(lr.domElement);
+
+var scene=new THREE.Scene();
+var SC=3.5; // nm → world units
+
+/* ── Camera ── */
+var camera=new THREE.PerspectiveCamera(36,W()/H(),0.1,9000);
+var CAMS={
+  iso:   {p:[90,70,130],  t:[0,0,19]},
+  front: {p:[-140,0,19],  t:[0,0,19]},  // X-Y cross-section view
+  side:  {p:[0,-130,19],  t:[0,0,19]},  // Z-X top-down-ish
+  top:   {p:[0,30,19],    t:[0,0,19]}   // Y looking down
+};
+function setCam(preset){
+  var c=CAMS[preset];
+  camera.position.set(c.p[0]*SC,c.p[1]*SC,c.p[2]*SC);
+  controls.target.set(c.t[0]*SC,c.t[1]*SC,c.t[2]*SC);
+  controls.update();
+}
+
+var controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+controls.dampingFactor=0.06;
+controls.minDistance=15;
+controls.maxDistance=3000;
+
+/* ── Lights ── */
+// Hemisphere: sky warm, ground cool (gives TCAD look)
+var hemi=new THREE.HemisphereLight(0xfff8f0, 0xd0e8ff, 0.7);
+scene.add(hemi);
+var sun=new THREE.DirectionalLight(0xfff0e8,1.4);
+sun.position.set(130,200,170);
+sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.near=1;
+sun.shadow.camera.far=1000;
+scene.add(sun);
+var fill=new THREE.DirectionalLight(0xc8d8ff,0.55);
+fill.position.set(-110,-70,60);
+scene.add(fill);
+var rim=new THREE.DirectionalLight(0xffe8c0,0.3);
+rim.position.set(0,60,-140);
+scene.add(rim);
+
+/* Grid */
+var grid=new THREE.GridHelper(600,32,0x9ab0c8,0xb8c8d8);
+grid.rotation.x=Math.PI/2;
+grid.position.set(0,-90,66);
+scene.add(grid);
+
+/* ══════════════════════════════════════════
+   PARAMETERS
+══════════════════════════════════════════ */
+var DEF={
+  res:1.0,beta:2.5,meshd:1.0,
+  sdR:26,sdL:5,sdDop:5.944,
+  gR:26,gL:12,
+  spR:26,spL:5,
+  nsT:5.0,nsW:24,nsSp:9.4,nsDop:2.0,
+  hkT:1.5,ioxT:0.7,
+  stiD:27.5,ptsT:15,ptsDop:1.0
+};
+var P={}; Object.assign(P,DEF);
+
+/* ══════════════════════════════════════════
+   DOPING COLORMAP (exact Sentaurus scale)
+══════════════════════════════════════════ */
+var CM=[
+  {v:-1e19,   r:0.00,g:0.00,b:0.42},
+  {v:-1.865e16,r:0.00,g:0.07,b:0.85},
+  {v:-3.477e13,r:0.00,g:0.77,b:0.93},
+  {v:3.79e12, r:0.00,g:0.85,b:0.12},
+  {v:2.067e15,r:0.65,g:0.87,b:0.00},
+  {v:1.109e18,r:1.00,g:0.62,b:0.00},
+  {v:5.944e20,r:1.00,g:0.00,b:0.00}
+];
+function lsv(v){return v===0?0:Math.sign(v)*Math.log10(Math.abs(v));}
+function dCol(c){
+  var n=CM.length;
+  if(c<=CM[0].v) return new THREE.Color(CM[0].r,CM[0].g,CM[0].b);
+  if(c>=CM[n-1].v) return new THREE.Color(CM[n-1].r,CM[n-1].g,CM[n-1].b);
+  for(var i=0;i<n-1;i++){
+    var a=CM[i],b=CM[i+1];
+    if(c>=a.v&&c<=b.v){
+      var la=lsv(a.v),lb=lsv(b.v),lc=lsv(c);
+      var t=Math.abs(lb-la)<1e-9?0:Math.max(0,Math.min(1,(lc-la)/(lb-la)));
+      return new THREE.Color(a.r+t*(b.r-a.r),a.g+t*(b.g-a.g),a.b+t*(b.b-a.b));
+    }
+  }
+  return new THREE.Color(0.5,0.5,0.5);
+}
+
+/* ══════════════════════════════════════════
+   REGION REGISTRY (for getDopingAt + cut face)
+══════════════════════════════════════════ */
+var REGS=[];
+function addReg(r){REGS.push(r);}
+
+function isInHex(dx,dy,R){
+  // Flat-top hexagon (first vertex at angle 0): vertices at 0,60,120,180,240,300 deg
+  var a=R*0.866025; // apothem
+  return Math.abs(dy)<=a && (0.866025*Math.abs(dx)+0.5*Math.abs(dy))<=a;
+}
+
+function getDopingAt(x,y,z){
+  // Search backward (later additions override earlier)
+  for(var i=REGS.length-1;i>=0;i--){
+    var r=REGS[i];
+    if(z<r.z0||z>r.z1) continue;
+    if(r.type==='hex'){
+      if(isInHex(x-r.cx,y-r.cy,r.rad)) return r.dop;
+    } else {
+      if(x>=r.x0&&x<=r.x1&&y>=r.y0&&y<=r.y1) return r.dop;
+    }
+  }
+  return null;
+}
+
+/* ══════════════════════════════════════════
+   SECTION CUT STATE
+══════════════════════════════════════════ */
+var cutActive=false;
+var cutX=0, cutY=0;
+var clipPX=new THREE.Plane(new THREE.Vector3(-1,0,0),0);
+var clipPY=new THREE.Plane(new THREE.Vector3(0,-1,0),0);
+
+/* ══════════════════════════════════════════
+   GROUPS
+══════════════════════════════════════════ */
+var solidGrp=new THREE.Group();
+var wireGrp =new THREE.Group();
+var femGrp  =new THREE.Group();
+var cutGrp  =new THREE.Group(); // cut face 2D mesh
+var conGrp  =new THREE.Group();
+scene.add(solidGrp,wireGrp,femGrp,cutGrp,conGrp);
+var subGrps={};
+
+/* ══════════════════════════════════════════
+   VIEW MODE
+══════════════════════════════════════════ */
+var viewMode='solid',showFEM=true;
+function applyView(){
+  switch(viewMode){
+    case 'solid': solidGrp.visible=true;wireGrp.visible=false;break;
+    case 'wire':  solidGrp.visible=false;wireGrp.visible=true;break;
+    case 'comb':  solidGrp.visible=true;wireGrp.visible=true;break;
+  }
+  femGrp.visible=showFEM;
+}
+
+/* ══════════════════════════════════════════
+   CLIPPING PLANES (applied to solid materials)
+══════════════════════════════════════════ */
+var allSolidMats=[];
+function applyClip(){
+  var planes=[];
+  if(cutActive){
+    clipPX.constant=cutX*SC;
+    clipPY.constant=cutY*SC;
+    planes=[clipPX,clipPY];
+    document.getElementById('mi-cut').style.display='inline';
+  } else {
+    document.getElementById('mi-cut').style.display='none';
+  }
+  allSolidMats.forEach(function(m){m.clippingPlanes=planes;});
+  rebuildCutFace();
+}
+
+/* ══════════════════════════════════════════
+   CUT FACE  (2D doping map at section plane)
+══════════════════════════════════════════ */
+function clearGrp(g){
+  while(g.children.length){
+    var c=g.children[0];
+    if(c.geometry)c.geometry.dispose();
+    if(c.material){if(Array.isArray(c.material))c.material.forEach(function(m){m.dispose();});else c.material.dispose();}
+    g.remove(c);
+  }
+}
+
+function makeCutFaceGeo(axis,posNm,p){
+  // Bounds for the face
+  var yMin=-(p.nsSp+p.nsT/2+p.ioxT+p.hkT+p.stiD+p.ptsT+3);
+  var yMax= p.nsSp+p.nsT/2+p.ioxT+p.hkT+5;
+  var zMin=3-2, zMax=3+p.sdL+p.spL+p.gL+p.spL+p.sdL+2;
+  var nY=55,nZ=75;
+
+  var pos=new Float32Array((nY+1)*(nZ+1)*3);
+  var col=new Float32Array((nY+1)*(nZ+1)*3);
+  var idx=[];
+
+  for(var j=0;j<=nY;j++){
+    var yn=yMin+(j/nY)*(yMax-yMin);
+    for(var i=0;i<=nZ;i++){
+      var zn=zMin+(i/nZ)*(zMax-zMin);
+      var vi=(j*(nZ+1)+i)*3;
+      if(axis==='x'){
+        pos[vi]=posNm*SC; pos[vi+1]=yn*SC; pos[vi+2]=zn*SC;
+        var dop=getDopingAt(posNm,yn,zn);
+      } else {
+        pos[vi]=(-(p.sdR+p.ioxT+p.hkT+18))*SC; pos[vi+1]=posNm*SC; pos[vi+2]=zn*SC;
+        // use a reasonable x sample
+        var dop=getDopingAt(0,posNm,zn);
+      }
+      var c2=dop!==null?dCol(dop):new THREE.Color(0.82,0.86,0.92);
+      col[vi]=c2.r; col[vi+1]=c2.g; col[vi+2]=c2.b;
+    }
+  }
+  for(var j=0;j<nY;j++) for(var i=0;i<nZ;i++){
+    var a=j*(nZ+1)+i, b=a+1, c3=(j+1)*(nZ+1)+i, d=c3+1;
+    idx.push(a,c3,b, b,c3,d);
+  }
+
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function rebuildCutFace(){
+  clearGrp(cutGrp);
+  if(!cutActive) return;
+
+  // X cut face (YZ plane)
+  var geo1=makeCutFaceGeo('x',cutX,P);
+  var mat1=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
+  cutGrp.add(new THREE.Mesh(geo1,mat1));
+
+  // Border on cut face
+  var brdr=new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.01,0.01));
+  // Add FEM mesh overlay on cut face
+  addFEMOnCutFace(cutX,P);
+}
+
+function addFEMOnCutFace(xNm,p){
+  var yMin=-(p.nsSp+p.nsT/2+p.ioxT+p.hkT+p.stiD+p.ptsT+3);
+  var yMax= p.nsSp+p.nsT/2+p.ioxT+p.hkT+5;
+  var zMin=3-2, zMax=3+p.sdL+p.spL+p.gL+p.spL+p.sdL+2;
+  var dens=p.meshd*p.res*0.7;
+  var nY=Math.max(3,Math.round(Math.abs(yMax-yMin)*dens/8));
+  var nZ=Math.max(3,Math.round(Math.abs(zMax-zMin)*dens/8));
+  var lines=[];
+  var pts=[];
+  for(var j=0;j<=nY;j++) for(var i=0;i<=nZ;i++){
+    var yn=yMin+(j/nY)*(yMax-yMin)+(j>0&&j<nY?(Math.random()-.5)*(yMax-yMin)/(nY*4):0);
+    var zn=zMin+(i/nZ)*(zMax-zMin)+(i>0&&i<nZ?(Math.random()-.5)*(zMax-zMin)/(nZ*4):0);
+    var dop=getDopingAt(xNm,yn,zn);
+    pts.push({y:yn,z:zn,ok:dop!==null});
+  }
+  for(var j=0;j<nY;j++) for(var i=0;i<nZ;i++){
+    var p00=pts[j*(nZ+1)+i],p10=pts[j*(nZ+1)+i+1],p01=pts[(j+1)*(nZ+1)+i],p11=pts[(j+1)*(nZ+1)+i+1];
+    if(p00.ok&&p10.ok&&p01.ok){
+      lines.push(xNm*SC,p00.y*SC,p00.z*SC, xNm*SC,p10.y*SC,p10.z*SC);
+      lines.push(xNm*SC,p10.y*SC,p10.z*SC, xNm*SC,p01.y*SC,p01.z*SC);
+      lines.push(xNm*SC,p01.y*SC,p01.z*SC, xNm*SC,p00.y*SC,p00.z*SC);
+    }
+    if(p10.ok&&p11.ok&&p01.ok){
+      lines.push(xNm*SC,p10.y*SC,p10.z*SC, xNm*SC,p11.y*SC,p11.z*SC);
+      lines.push(xNm*SC,p11.y*SC,p11.z*SC, xNm*SC,p01.y*SC,p01.z*SC);
+    }
+  }
+  if(lines.length){
+    var fg=new THREE.BufferGeometry();
+    fg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(lines),3));
+    cutGrp.add(new THREE.LineSegments(fg,new THREE.LineBasicMaterial({color:0xff00ff,transparent:true,opacity:0.72})));
+  }
+}
+
+/* ══════════════════════════════════════════
+   GEOMETRY BUILDERS
+══════════════════════════════════════════ */
+var totalC=0,totalT=0;
+function nd(sz,tgt,res){return Math.max(2,Math.round(sz/tgt*res));}
+
+function gradedPos(a,b,n,beta){
+  var arr=[],L=b-a,al=Math.log(Math.max(1.001,beta)),tA=Math.tanh(al);
+  for(var i=0;i<=n;i++){
+    var t=i/n,tb;
+    if(tA<0.001)tb=t;
+    else tb=(Math.tanh(al*(2*t-1))+tA)/(2*tA);
+    arr.push(a+L*tb);
+  }
+  return arr;
+}
+
+/* Hexagonal prism – axis along Z */
+function addHex(zS,zE,rad,dop,sg,wg,fg,femTop,femBot){
+  var h=(zE-zS)*SC, r=rad*SC, cz=(zS+zE)/2*SC;
+  var segs=nd(Math.abs(zE-zS),2.5,P.res);
+
+  var geo=new THREE.CylinderGeometry(r,r,h,6,segs);
+  var col=dCol(dop);
+  var mat=new THREE.MeshPhongMaterial({color:col,shininess:50,specular:new THREE.Color(0.15,0.15,0.15)});
+  mat.clippingPlanes=[];
+  allSolidMats.push(mat);
+  var m=new THREE.Mesh(geo,mat); m.rotation.x=Math.PI/2; m.position.set(0,0,cz);
+  m.castShadow=true; sg.add(m);
+
+  // Edges
+  var eg=new THREE.EdgesGeometry(geo);
+  var em=new THREE.LineBasicMaterial({color:0x111111,transparent:true,opacity:0.32});
+  var es=new THREE.LineSegments(eg,em); es.rotation.x=Math.PI/2; es.position.set(0,0,cz);
+  wg.add(es);
+
+  totalC+=6*segs; totalT+=(6*segs*2)+(6*2);
+
+  // FEM mesh on hexagonal faces
+  if(femTop&&fg) genHexFEM(0,0,zE,rad,fg,P.meshd*P.res);
+  if(femBot&&fg) genHexFEM(0,0,zS,rad,fg,P.meshd*P.res);
+}
+
+function genHexFEM(cx,cy,cz,R,fg,dens){
+  var Rw=R*SC, cxw=cx*SC, cyw=cy*SC, czw=cz*SC;
+  var sp=Rw/(3.8*dens);
+  var ni=Math.ceil(2*Rw/sp)+2, nj=Math.ceil(2*Rw/sp)+2;
+  var pts=[];
+  for(var j=0;j<nj;j++) for(var i=0;i<ni;i++){
+    var px=cxw-Rw+(i/(ni-1))*2*Rw, py=cyw-Rw+(j/(nj-1))*2*Rw;
+    var ok=isInHex(px-cxw,py-cyw,Rw);
+    if(ok&&i>0&&i<ni-1&&j>0&&j<nj-1){px+=(Math.random()-.5)*sp*.3;py+=(Math.random()-.5)*sp*.3;}
+    pts.push({x:px,y:py,ok:ok});
+  }
+  var lines=[];
+  for(var j=0;j<nj-1;j++) for(var i=0;i<ni-1;i++){
+    var p00=pts[j*ni+i],p10=pts[j*ni+i+1],p01=pts[(j+1)*ni+i],p11=pts[(j+1)*ni+i+1];
+    if((i+j)%2===0){
+      if(p00.ok&&p10.ok&&p01.ok){lines.push(p00.x,p00.y,czw,p10.x,p10.y,czw,p10.x,p10.y,czw,p01.x,p01.y,czw,p01.x,p01.y,czw,p00.x,p00.y,czw);}
+      if(p10.ok&&p11.ok&&p01.ok){lines.push(p10.x,p10.y,czw,p11.x,p11.y,czw,p11.x,p11.y,czw,p01.x,p01.y,czw,p01.x,p01.y,czw,p10.x,p10.y,czw);}
+    } else {
+      if(p00.ok&&p11.ok&&p01.ok){lines.push(p00.x,p00.y,czw,p11.x,p11.y,czw,p11.x,p11.y,czw,p01.x,p01.y,czw,p01.x,p01.y,czw,p00.x,p00.y,czw);}
+      if(p00.ok&&p10.ok&&p11.ok){lines.push(p00.x,p00.y,czw,p10.x,p10.y,czw,p10.x,p10.y,czw,p11.x,p11.y,czw,p11.x,p11.y,czw,p00.x,p00.y,czw);}
+    }
+  }
+  if(lines.length){
+    var fg2=new THREE.BufferGeometry();
+    fg2.setAttribute('position',new THREE.BufferAttribute(new Float32Array(lines),3));
+    fg.add(new THREE.LineSegments(fg2,new THREE.LineBasicMaterial({color:0xff00ff,transparent:true,opacity:0.85})));
+  }
+}
+
+/* Box region with graded hex mesh */
+function addBox(x0,y0,z0,x1,y1,z1,nx,ny,nz,dop,sg,wg,femFace){
+  if(Math.abs(x1-x0)<.01||Math.abs(y1-y0)<.01||Math.abs(z1-z0)<.01)return;
+  var xs=gradedPos(x0*SC,x1*SC,nx,P.beta);
+  var ys=gradedPos(y0*SC,y1*SC,ny,P.beta);
+  var zs=gradedPos(z0*SC,z1*SC,nz,P.beta);
+  var nc=nx*ny*nz;
+  var pa=new Float32Array(nc*6*6*3),na=new Float32Array(nc*6*6*3);
+  var si=0,ni2=0;
+  function qf(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz,nx2,ny2,nz2){
+    var t=[ax,ay,az,bx,by,bz,cx,cy,cz,ax,ay,az,cx,cy,cz,dx,dy,dz];
+    for(var q=0;q<18;q+=3){pa[si]=t[q];pa[si+1]=t[q+1];pa[si+2]=t[q+2];si+=3;na[ni2]=nx2;na[ni2+1]=ny2;na[ni2+2]=nz2;ni2+=3;}
+  }
+  for(var k=0;k<nz;k++) for(var j=0;j<ny;j++) for(var i=0;i<nx;i++){
+    var x00=xs[i],x11=xs[i+1],y00=ys[j],y11=ys[j+1],z00=zs[k],z11=zs[k+1];
+    qf(x11,y00,z00,x11,y11,z00,x11,y11,z11,x11,y00,z11,1,0,0);
+    qf(x00,y00,z11,x00,y11,z11,x00,y11,z00,x00,y00,z00,-1,0,0);
+    qf(x00,y11,z00,x11,y11,z00,x11,y11,z11,x00,y11,z11,0,1,0);
+    qf(x11,y00,z00,x00,y00,z00,x00,y00,z11,x11,y00,z11,0,-1,0);
+    qf(x00,y00,z11,x11,y00,z11,x11,y11,z11,x00,y11,z11,0,0,1);
+    qf(x11,y00,z00,x11,y11,z00,x00,y11,z00,x00,y00,z00,0,0,-1);
+  }
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pa.slice(0,si),3));
+  geo.setAttribute('normal',new THREE.BufferAttribute(na.slice(0,ni2),3));
+  var col=dCol(dop);
+  var mat=new THREE.MeshPhongMaterial({color:col,shininess:35});
+  mat.clippingPlanes=[];
+  allSolidMats.push(mat);
+  var m=new THREE.Mesh(geo,mat); m.castShadow=true; m.receiveShadow=true; sg.add(m);
+  // Edges
+  var el=[];
+  for(var k=0;k<=nz;k++) for(var j=0;j<=ny;j++) for(var i=0;i<nx;i++) el.push(xs[i],ys[j],zs[k],xs[i+1],ys[j],zs[k]);
+  for(var k=0;k<=nz;k++) for(var j=0;j<ny;j++) for(var i=0;i<=nx;i++) el.push(xs[i],ys[j],zs[k],xs[i],ys[j+1],zs[k]);
+  for(var k=0;k<nz;k++) for(var j=0;j<=ny;j++) for(var i=0;i<=nx;i++) el.push(xs[i],ys[j],zs[k],xs[i],ys[j],zs[k+1]);
+  var eg=new THREE.BufferGeometry();
+  eg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(el),3));
+  wg.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x111111,transparent:true,opacity:0.26})));
+  totalC+=nc; totalT+=nc*12;
+}
+
+/* Contacts + labels */
+function addLabel(text,color,x,y,z,grp){
+  var div=document.createElement('div');
+  div.className='lbl3d'; div.textContent=text;
+  div.style.color=color; div.style.borderColor=color+'99';
+  var obj=new THREE.CSS2DObject(div);
+  obj.position.set(x*SC,y*SC,z*SC); grp.add(obj);
+}
+function addSphere(x,y,z,r,color,grp){
+  var geo=new THREE.SphereGeometry(r*SC,18,18);
+  var mat=new THREE.MeshPhongMaterial({color:color,emissive:color,emissiveIntensity:0.5,shininess:90});
+  var m=new THREE.Mesh(geo,mat); m.position.set(x*SC,y*SC,z*SC); grp.add(m);
+  // glow ring
+  var rg=new THREE.TorusGeometry(r*SC*1.8,r*SC*0.35,8,24);
+  var rm=new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:0.25}));
+  rm.position.set(x*SC,y*SC,z*SC); rm.rotation.x=Math.PI/2; grp.add(rm);
+}
+
+/* ══════════════════════════════════════════
+   BUILD ENTIRE STRUCTURE
+══════════════════════════════════════════ */
+function buildStructure(){
+  [solidGrp,wireGrp,femGrp,cutGrp,conGrp].forEach(clearGrp);
+  subGrps={}; allSolidMats=[]; REGS=[];
+  totalC=0; totalT=0;
+
+  var p=P,r=p.res;
+
+  // Z positions (nm) from SDE code
+  var DZ0=3, DZ1=DZ0+p.sdL;        // Drain
+  var S2Z0=DZ1, S2Z1=DZ1+p.spL;    // Spacer bottom
+  var GZ0=S2Z1, GZ1=S2Z1+p.gL;     // Gate
+  var S1Z0=GZ1, S1Z1=GZ1+p.spL;    // Spacer top
+  var SZ0=S1Z1, SZ1=S1Z1+p.sdL;    // Source
+
+  var NSZ0=S2Z0, NSZ1=S1Z1;        // Nanosheet (channel)
+  var nsHW=p.nsT/2, nsHX=p.nsW/2;
+  var ioxT=p.ioxT, hkT=p.hkT;
+  var shY=[0,p.nsSp,-p.nsSp];
+  var topY=p.nsSp+nsHW+ioxT+hkT;
+  var botY=-(p.nsSp+nsHW+ioxT+hkT);
+
+  var stiYtop=-(p.nsSp+nsHW);
+  var stiYbot=stiYtop-p.stiD;
+  var ptsYbot=stiYbot-p.ptsT;
+  var stiXin=p.sdR+2, stiXout=p.sdR+16;
+
+  var sdDop=p.sdDop*1e20;
+  var nsDop=p.nsDop*1e17;
+  var ptsDop=-(p.ptsDop*1e19);
+
+  function mkG(id){
+    var sg=new THREE.Group(),wg=new THREE.Group(),fg=new THREE.Group();
+    solidGrp.add(sg);wireGrp.add(wg);femGrp.add(fg);
+    subGrps[id]={s:sg,w:wg,f:fg};
+    var el=document.getElementById(id);
+    var vis=el?el.checked:true;
+    sg.visible=vis;wg.visible=vis;fg.visible=vis;
+    return subGrps[id];
+  }
+
+  /* ── SOURCE (Hex Prism, N+ RED) ── */
+  var gSD=mkG('t-sd');
+  addHex(SZ0,SZ1,p.sdR,sdDop,gSD.s,gSD.w,gSD.f,true,false);
+  addHex(DZ0,DZ1,p.sdR,sdDop,gSD.s,gSD.w,gSD.f,false,true);
+  addReg({type:'hex',cx:0,cy:0,rad:p.sdR,z0:SZ0,z1:SZ1,dop:sdDop});
+  addReg({type:'hex',cx:0,cy:0,rad:p.sdR,z0:DZ0,z1:DZ1,dop:sdDop});
+
+  /* ── SPACERS (Hex Prism, intrinsic) ── */
+  var gSP=mkG('t-sp');
+  addHex(S1Z0,S1Z1,p.spR,1e12,gSP.s,gSP.w,null,false,false);
+  addHex(S2Z0,S2Z1,p.spR,1e12,gSP.s,gSP.w,null,false,false);
+  addReg({type:'hex',cx:0,cy:0,rad:p.spR,z0:S1Z0,z1:S1Z1,dop:1e12});
+  addReg({type:'hex',cx:0,cy:0,rad:p.spR,z0:S2Z0,z1:S2Z1,dop:1e12});
+
+  /* ── GATE (Hex Prism, metal) ── */
+  var gGT=mkG('t-gate');
+  addHex(GZ0,GZ1,p.gR,1e20,gGT.s,gGT.w,gGT.f,true,true);
+  addReg({type:'hex',cx:0,cy:0,rad:p.gR,z0:GZ0,z1:GZ1,dop:1e20});
+
+  /* ── NANOSHEETS (Cuboids, N-ch) ── */
+  var gNS=mkG('t-ns');
+  shY.forEach(function(yc){
+    var y0=yc-nsHW,y1=yc+nsHW;
+    var nx=nd(p.nsW,3,r),ny=nd(p.nsT,1,r),nz=nd(NSZ1-NSZ0,3,r);
+    addBox(-nsHX,y0,NSZ0,nsHX,y1,NSZ1,nx,ny,nz,nsDop,gNS.s,gNS.w,null);
+    addReg({type:'box',x0:-nsHX,y0:y0,z0:NSZ0,x1:nsHX,y1:y1,z1:NSZ1,dop:nsDop});
+  });
+
+  /* ── HfO2 + IntOx (Cuboids) ── */
+  var gHK=mkG('t-hk');
+  shY.forEach(function(yc){
+    var y0=yc-nsHW,y1=yc+nsHW;
+    var nzH=nd(p.gL,1.5,r);
+    var nxH=nd(p.nsW,2.5,r),nyH=Math.max(2,nd(hkT,.4,r)),nyI=Math.max(2,nd(ioxT,.25,r));
+    addBox(-nsHX,y1+ioxT,GZ0,nsHX,y1+ioxT+hkT,GZ1,nxH,nyH,nzH,1e12,gHK.s,gHK.w,null);
+    addBox(-nsHX,y0-ioxT-hkT,GZ0,nsHX,y0-ioxT,GZ1,nxH,nyH,nzH,1e12,gHK.s,gHK.w,null);
+    addBox(nsHX+ioxT,y0,GZ0,nsHX+ioxT+hkT,y1,GZ1,Math.max(2,nd(hkT,.4,r)),nd(p.nsT,1.5,r),nzH,1e12,gHK.s,gHK.w,null);
+    addBox(-(nsHX+ioxT+hkT),y0,GZ0,-(nsHX+ioxT),y1,GZ1,Math.max(2,nd(hkT,.4,r)),nd(p.nsT,1.5,r),nzH,1e12,gHK.s,gHK.w,null);
+    addBox(-nsHX,y1,GZ0,nsHX,y1+ioxT,GZ1,nxH,nyI,nzH,5e12,gHK.s,gHK.w,null);
+    addBox(-nsHX,y0-ioxT,GZ0,nsHX,y0,GZ1,nxH,nyI,nzH,5e12,gHK.s,gHK.w,null);
+    addBox(nsHX,y0,GZ0,nsHX+ioxT,y1,GZ1,Math.max(2,nd(ioxT,.25,r)),nd(p.nsT,1.5,r),nzH,5e12,gHK.s,gHK.w,null);
+    addBox(-(nsHX+ioxT),y0,GZ0,-nsHX,y1,GZ1,Math.max(2,nd(ioxT,.25,r)),nd(p.nsT,1.5,r),nzH,5e12,gHK.s,gHK.w,null);
+    // Register for getDopingAt
+    [{x0:-nsHX,x1:nsHX,y0:y1+ioxT,y1:y1+ioxT+hkT},{x0:-nsHX,x1:nsHX,y0:y0-ioxT-hkT,y1:y0-ioxT}].forEach(function(b){
+      addReg({type:'box',x0:b.x0,y0:b.y0,z0:GZ0,x1:b.x1,y1:b.y1,z1:GZ1,dop:1e12});
+    });
+    addReg({type:'box',x0:-nsHX,y0:y1,z0:GZ0,x1:nsHX,y1:y1+ioxT,z1:GZ1,dop:5e12});
+    addReg({type:'box',x0:-nsHX,y0:y0-ioxT,z0:GZ0,x1:nsHX,y1:y0,z1:GZ1,dop:5e12});
+  });
+
+  /* ── STI OXIDE ── */
+  var gSTI=mkG('t-sti');
+  var stiNx=nd(stiXout-stiXin,4,r),stiNy=nd(p.stiD,4,r),stiNz=nd(SZ1-DZ0,5,r);
+  addBox(stiXin,stiYbot,DZ0,stiXout,stiYtop,SZ1,stiNx,stiNy,stiNz,1e12,gSTI.s,gSTI.w,null);
+  addBox(-stiXout,stiYbot,DZ0,-stiXin,stiYtop,SZ1,stiNx,stiNy,stiNz,1e12,gSTI.s,gSTI.w,null);
+  addReg({type:'box',x0:stiXin,y0:stiYbot,z0:DZ0,x1:stiXout,y1:stiYtop,z1:SZ1,dop:1e12});
+  addReg({type:'box',x0:-stiXout,y0:stiYbot,z0:DZ0,x1:-stiXin,y1:stiYtop,z1:SZ1,dop:1e12});
+
+  /* ── PTS SUBSTRATE ── */
+  var gPTS=mkG('t-pts');
+  var ptsNx=nd(stiXout*2,6,r),ptsNy=nd(p.ptsT,4,r),ptsNz=nd(SZ1-DZ0,6,r);
+  addBox(-stiXout,ptsYbot,DZ0,stiXout,stiYbot,SZ1,ptsNx,ptsNy,ptsNz,ptsDop,gPTS.s,gPTS.w,null);
+  addReg({type:'box',x0:-stiXout,y0:ptsYbot,z0:DZ0,x1:stiXout,y1:stiYbot,z1:SZ1,dop:ptsDop});
+  // Substrate (slightly p-type below PTS, shows as cyan)
+  addReg({type:'box',x0:-stiXout,y0:ptsYbot-20,z0:DZ0-5,x1:stiXout,y1:ptsYbot,z1:SZ1+5,dop:-3.477e13});
+
+  /* ── CONTACTS ── */
+  conGrp.visible=document.getElementById('t-con').checked;
+  var cr=2.3;
+  var midZ=(DZ0+SZ1)/2;
+  addSphere(0,0,SZ1+cr*2, cr, 0xdd0000, conGrp); addLabel('S  Source','#cc0000',cr*2.5,cr,SZ1+cr*2.5,conGrp);
+  addSphere(0,0,DZ0-cr*2, cr, 0xdd0000, conGrp); addLabel('D  Drain', '#cc0000',cr*2.5,cr,DZ0-cr*3,conGrp);
+  addSphere(p.gR+cr*2,0,(GZ0+GZ1)/2, cr, 0xcc8800, conGrp); addLabel('G  Gate','#cc8800',p.gR+cr*3,cr,(GZ0+GZ1)/2,conGrp);
+  addSphere(0,stiYbot-cr*2,midZ, cr, 0x0044cc, conGrp); addLabel('B  Body','#0044cc',cr*2,stiYbot-cr*3,midZ,conGrp);
+
+  /* ── Stats update ── */
+  document.getElementById('mi-c').textContent=totalC.toLocaleString();
+  document.getElementById('mi-t').textContent=totalT.toLocaleString();
+  document.getElementById('mi-r').textContent=P.res.toFixed(1)+'×';
+
+  applyView();
+  applyClip();
+  setCam('iso');
+}
+
+/* ══════════════════════════════════════════
+   UI WIRING
+══════════════════════════════════════════ */
+// View modes
+['solid','wire','comb'].forEach(function(vm){
+  document.getElementById('vm-'+vm).addEventListener('click',function(){
+    viewMode=vm;
+    ['solid','wire','comb'].forEach(function(v){document.getElementById('vm-'+v).classList.toggle('on',v===vm);});
+    applyView();
+  });
+});
+
+// Camera presets
+Object.keys(CAMS).forEach(function(k){
+  var el=document.getElementById('cam-'+k);
+  if(el) el.addEventListener('click',function(){
+    Object.keys(CAMS).forEach(function(kk){var e2=document.getElementById('cam-'+kk);if(e2)e2.classList.remove('on');});
+    el.classList.add('on');
+    setCam(k);
+  });
+});
+
+// Section cut toggle
+document.getElementById('btnCut').addEventListener('click',function(){
+  cutActive=!cutActive;
+  this.classList.toggle('on',cutActive);
+  document.getElementById('cutPanel').classList.toggle('show',cutActive);
+  applyClip();
+});
+
+// Cut sliders
+document.getElementById('cp-x').addEventListener('input',function(){
+  cutX=parseFloat(this.value);
+  document.getElementById('cpv-x').textContent=cutX.toFixed(1)+' nm';
+  var pct=((cutX-parseFloat(this.min))/(parseFloat(this.max)-parseFloat(this.min))*100).toFixed(1);
+  this.style.setProperty('--cp',pct+'%');
+  applyClip();
+});
+document.getElementById('cp-y').addEventListener('input',function(){
+  cutY=parseFloat(this.value);
+  document.getElementById('cpv-y').textContent=cutY.toFixed(1)+' nm';
+  var pct=((cutY-parseFloat(this.min))/(parseFloat(this.max)-parseFloat(this.min))*100).toFixed(1);
+  this.style.setProperty('--cp',pct+'%');
+  applyClip();
+});
+
+// FEM toggle
+document.getElementById('btnFEM').addEventListener('click',function(){
+  showFEM=!showFEM;this.classList.toggle('on',showFEM);femGrp.visible=showFEM;
+});
+
+// Params panel toggle
+document.getElementById('btnRP').addEventListener('click',function(){
+  document.getElementById('rp').classList.toggle('col');this.classList.toggle('on');
+  setTimeout(function(){camera.aspect=W()/H();camera.updateProjectionMatrix();renderer.setSize(W(),H());lr.setSize(W(),H());},280);
+});
+
+// Legend
+document.getElementById('btnLeg').addEventListener('click',function(){
+  document.getElementById('leg').classList.toggle('hid');this.classList.toggle('on');
+});
+
+// Reset
+document.getElementById('btnDef').addEventListener('click',function(){
+  Object.assign(P,DEF);
+  Object.keys(DEF).forEach(function(k){
+    var sl=document.getElementById('s-'+k),vl=document.getElementById('v-'+k);
+    if(sl){sl.value=DEF[k];var pct=((DEF[k]-parseFloat(sl.min))/(parseFloat(sl.max)-parseFloat(sl.min))*100).toFixed(1);sl.style.setProperty('--p',pct+'%');}
+    if(vl)vl.textContent=DEF[k].toFixed(1);
+  });
+  buildStructure();
+});
+
+// Visibility toggles
+['t-sd','t-gate','t-sp','t-ns','t-hk','t-sti','t-pts'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el) el.addEventListener('change',function(){
+    var g=subGrps[id];
+    if(g){g.s.visible=el.checked;g.w.visible=el.checked;g.f.visible=el.checked;}
+  });
+});
+document.getElementById('t-con').addEventListener('change',function(e){conGrp.visible=e.target.checked;});
+document.getElementById('t-rot').addEventListener('change',function(e){controls.autoRotate=e.target.checked;controls.autoRotateSpeed=0.65;});
+
+// Sliders
+var pending=false;
+function sched(){if(!pending){pending=true;requestAnimationFrame(function(){buildStructure();pending=false;});}}
+function wire(id,key,dec){
+  var sl=document.getElementById('s-'+id),vl=document.getElementById('v-'+id);
+  if(!sl||!vl)return;
+  function upd(){var v=parseFloat(sl.value);P[key]=v;vl.textContent=v.toFixed(dec!==undefined?dec:1);var pct=((v-parseFloat(sl.min))/(parseFloat(sl.max)-parseFloat(sl.min))*100).toFixed(1);sl.style.setProperty('--p',pct+'%');}
+  upd();
+  sl.addEventListener('input',function(){upd();sched();});
+}
+wire('res','res',1);wire('beta','beta',1);wire('meshd','meshd',1);
+wire('sdR','sdR',0);wire('sdL','sdL',1);wire('sdDop','sdDop',3);
+wire('gR','gR',0);wire('gL','gL',1);
+wire('spR','spR',0);wire('spL','spL',1);
+wire('nsT','nsT',1);wire('nsW','nsW',0);wire('nsSp','nsSp',1);wire('nsDop','nsDop',1);
+wire('hkT','hkT',1);wire('ioxT','ioxT',1);
+wire('stiD','stiD',1);wire('ptsT','ptsT',1);wire('ptsDop','ptsDop',1);
+
+/* ══════════════════════════════════════════
+   RESIZE + ANIMATE
+══════════════════════════════════════════ */
+window.addEventListener('resize',function(){
+  camera.aspect=W()/H();camera.updateProjectionMatrix();
+  renderer.setSize(W(),H());lr.setSize(W(),H());
+});
+
+var t=0;
+(function animate(){
+  requestAnimationFrame(animate);
+  t+=0.016;
+  controls.update();
+  // Pulse contact glow rings
+  conGrp.children.forEach(function(c){
+    if(c.isMesh&&c.geometry.type==='TorusGeometry')
+      c.material.opacity=0.12+0.18*Math.sin(t*2.4+c.id*.6);
+  });
+  renderer.render(scene,camera);
+  lr.render(scene,camera);
+})();
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+lsub.textContent='Generating hex mesh…';
+setCam('iso');
+controls.update();
+buildStructure();
+
+setTimeout(function(){
+  ld.classList.add('done');
+  setTimeout(function(){if(ld.parentNode)ld.parentNode.removeChild(ld);},600);
+},1000);
+
+})();
+</script>
+</body>
+</html>

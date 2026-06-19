@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FET2SNN | Contact FET2SNN</title>
+    <!-- Import Map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+    <style>
+        /* RESET & BASE STYLES */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050812;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #f0f4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 3D CANVAS BACKGROUND */
+        #bg-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        /* GLASSMORPHISM CARD */
+        .wrapper {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            z-index: 10;
+        }
+        .glass-card {
+            display: flex;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            padding: 40px;
+            gap: 40px;
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        /* LEFT SIDE: INFO */
+        .info-section {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+        }
+        .info-section h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .info-section p {
+            color: #94a3b8;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            max-width: 300px;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .info-item .icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex; justify-content: center; align-items: center;
+            color: #60a5fa;
+        }
+
+        /* RIGHT SIDE: FORM */
+        .form-section {
+            flex: 1.5;
+            min-width: 300px;
+        }
+        .form-section form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        .form-row > div { flex: 1; }
+
+        /* NEON INPUT FIELDS */
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.3s;
+        }
+        input, textarea, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #f0f4ff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease-in-out, opacity 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+            transform: scale(1.01);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        textarea { resize: vertical; min-height: 120px; }
+        select { color: #94a3b8; }
+        select option { background: #0b0f19; }
+
+        /* QUANTUM SUBMIT BUTTON */
+        .submit-btn {
+            padding: 16px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 56px;
+            margin-top: 10px;
+        }
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+        }
+        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        /* LOADING ANIMATION INSIDE BUTTON */
+        .btn-text { transition: opacity 0.3s; }
+        .btn-loader {
+            position: absolute;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+        }
+        .submit-btn.loading .btn-text { opacity: 0; }
+        .submit-btn.loading .btn-loader { display: flex; }
+        
+        .loader-segments {
+            display: flex;
+            gap: 6px;
+        }
+        .segment {
+            width: 10px; height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            animation: pulse 0.6s infinite alternate;
+        }
+        .segment:nth-child(2) { animation-delay: 0.2s; }
+        .segment:nth-child(3) { animation-delay: 0.4s; }
+
+        /* SUCCESS STATE */
+        .success-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #4ade80;
+            text-align: center;
+        }
+        .success-state h3 { font-size: 1.8rem; margin-bottom: 10px; }
+        .submit-btn.success { background: #166534; }
+
+        /* CSS ENTRANCE ANIMATIONS */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .fade-in { opacity: 0; animation: slideIn 0.7s ease-out forwards; }
+        .fade-in:nth-child(1) { animation-delay: 0.1s; }
+        .fade-in:nth-child(2) { animation-delay: 0.2s; }
+        .fade-in:nth-child(3) { animation-delay: 0.3s; }
+        .fade-in:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.5); opacity: 1; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .glass-card { flex-direction: column; padding: 24px; }
+            .form-row { flex-direction: column; gap: 16px; }
+            .info-section { align-items: center; text-align: center; }
+            .info-section p { max-width: 100%; }
+            .info-item { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background Container -->
+    <div id="bg-container"></div>
+
+    <!-- Main Contact UI -->
+    <div class="wrapper">
+        <div class="glass-card">
+            
+            <!-- Info Side -->
+            <div class="info-section">
+                <h2>Contact FET2SNN</h2>
+                <p>Establish a secure neural link with our engineering team for device optimization inquiries.</p>
+                <div class="info-item fade-in">
+                    <div class="icon">📧</div>
+                    <div><small>Email</small><br><strong>nagamanoj002008@gmail.com</strong></div>
+                </div>
+                <div class="info-item fade-in">
+                    <div class="icon">📍</div>
+                    <div><small>Location</small><br><strong>Kadapa, Andhra Pradesh</strong></div>
+                </div>
+                <div class="info-item fade-in">
+                    <div class="icon">⚡</div>
+                    <div><small>Response Time</small><br><strong>&lt; 2.5ms (Simulated)</strong></div>
+                </div>
+            </div>
+
+            <!-- Form Side -->
+            <div class="form-section">
+                <form id="contactForm">
+                    <div class="form-row">
+                        <div class="fade-in">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" placeholder="John Doe" required />
+                        </div>
+                        <div class="fade-in">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" placeholder="john@example.com" required />
+                        </div>
+                    </div>
+                    <div class="fade-in">
+                        <label for="subject">Inquiry Type</label>
+                        <select id="subject">
+                            <option>General Inquiry</option>
+                            <option>SNN Partnership</option>
+                            <option>Tech Support</option>
+                        </select>
+                    </div>
+                    <div class="fade-in">
+                        <label for="message">Message</label>
+                        <textarea id="message" placeholder="Describe your optimization requirements..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn fade-in" id="submitBtn">
+                        <span class="btn-text">🚀 Transmit Neural Information</span>
+                        <div class="btn-loader">
+                            <div class="loader-segments">
+                                <div class="segment"></div>
+                                <div class="segment"></div>
+                                <div class="segment"></div>
+                            </div>
+                        </div>
+                    </button>
+                    <div id="successMessage" class="success-state">
+                        <h3>✓ Neural Information Sent</h3>
+                        <p style="color:#94a3b8;">Our team will respond within the neural cycle.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript: 3D Engine + Form Logic -->
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- 1. SETUP 3D BACKGROUND ---
+        const container = document.getElementById('bg-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 12);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance optimization
+        container.appendChild(renderer.domElement);
+
+        // --- 2. CREATE 3D OBJECTS ---
+        // Floating Geometric Artifact
+        const geometry = new THREE.IcosahedronGeometry(2.5, 1);
+        const material = new THREE.MeshStandardMaterial({
+            color: '#3b82f6',
+            wireframe: false,
+            transparent: true,
+            opacity: 0.15,
+            roughness: 0.4,
+            metalness: 0.8,
+            emissive: '#1e3a8a',
+            emissiveIntensity: 0.2
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Wireframe overlay for detail
+        const wireframeMat = new THREE.MeshBasicMaterial({
+            color: '#60a5fa',
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+        const wireframeMesh = new THREE.Mesh(geometry, wireframeMat);
+        scene.add(mesh.clone()); // add solid geometry
+        scene.add(wireframeMesh);
+
+        // Particle System (Stars)
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsCount = 2000;
+        const starsPos = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount * 3; i++) {
+            starsPos[i] = (Math.random() - 0.5) * 60;
+        }
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+        const starsMat = new THREE.PointsMaterial({
+            color: '#94a3b8',
+            size: 0.1,
+            transparent: true,
+            opacity: 0.8
+        });
+        const stars = new THREE.Points(starsGeometry, starsMat);
+        scene.add(stars);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        const light1 = new THREE.PointLight(0x3b82f6, 2, 20);
+        light1.position.set(4, 4, 4);
+        scene.add(light1);
+        const light2 = new THREE.PointLight(0x8b5cf6, 2, 20);
+        light2.position.set(-4, -4, 4);
+        scene.add(light2);
+
+        // --- 3. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.0005;
+            // Subtle floating movement
+            mesh.rotation.x = Math.sin(time * 0.2) * 0.2;
+            mesh.rotation.y += 0.003;
+            wireframeMesh.rotation.x = mesh.rotation.x;
+            wireframeMesh.rotation.y = mesh.rotation.y;
+            
+            // Slowly rotate the whole starfield
+            stars.rotation.y += 0.0002;
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- 4. RESPONSIVE RESIZE ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 5. FORM LOGIC (Real-time backend API call) ---
+        const form = document.getElementById('contactForm');
+        const btn = document.getElementById('submitBtn');
+        const successMsg = document.getElementById('successMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. Enter Loading State
+            btn.classList.add('loading');
+            btn.disabled = true;
+            successMsg.style.display = 'none';
+            form.querySelectorAll('input, select, textarea, label, .form-row').forEach(el => {
+                el.style.opacity = '0.6';
+            });
+
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // 3. Success State
+                    btn.classList.remove('loading');
+                    btn.classList.add('success');
+                    btn.innerHTML = '<span class="btn-text">✓ Neural Information Sent</span>';
+                    successMsg.style.display = 'flex';
+                    
+                    // Reset opacity
+                    form.querySelectorAll('input, select, textarea, label, .form-row').forEach(el => {
+                        el.style.opacity = '1';
+                    });
+
+                    // 4. Reset form after 4 seconds (so they can send again)
+                    setTimeout(() => {
+                        btn.classList.remove('success');
+                        btn.disabled = false;
+                        btn.innerHTML = '<span class="btn-text">🚀 Transmit Neural Information</span>';
+                        successMsg.style.display = 'none';
+                        form.reset();
+                    }, 4000);
+                } else {
+                    throw new Error(data.message || 'Transmission failed.');
+                }
+            } catch (err) {
+                alert(err.message || 'Failed to establish connection. Please try again.');
+                
+                // Reset loading state on error so user can retry
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                form.querySelectorAll('input, select, textarea, label, .form-row').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

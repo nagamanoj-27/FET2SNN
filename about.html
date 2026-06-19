@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FET2SNN | The Architecture</title>
+    <!-- Import Map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+    <style>
+        /* RESET & BASE */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #060a14;
+            color: #f0f4ff;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* 3D CANVAS - FIXED IN BACKGROUND */
+        #bg-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* Let clicks pass to text */
+        }
+
+        /* SCROLLABLE CONTENT SECTIONS */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            pointer-events: none; /* Let container let events pass, but cards capture them */
+        }
+        
+        section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            pointer-events: none; /* Default to none for the section */
+        }
+        section:last-child { height: 80vh; }
+
+        /* GLASSMORPHISM CARDS */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            pointer-events: auto; /* Card is clickable/interactable */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* SPECIFIC CARD ALIGNMENTS */
+        .hero-card { text-align: center; }
+        .left-card { margin-right: auto; margin-left: 5%; }
+        .right-card { margin-left: auto; margin-right: 5%; }
+
+        .hero-card h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .hero-card p { color: #94a3b8; font-size: 1.2rem; line-height: 1.6; }
+
+        .glass-card h2 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .glass-card h2 span { color: #3b82f6; }
+        .glass-card p { color: #b0bacc; line-height: 1.7; font-size: 1.05rem; }
+        .tag {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* BACK TO MAIN APP BUTTON */
+        .back-link {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            z-index: 100;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+        .back-link:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        /* SCROLL INDICATOR (FOR THE WOW FACTOR) */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            width: 40px; height: 40px;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            animation: bounce 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero-card h1 { font-size: 2.2rem; }
+            .left-card, .right-card { margin: 0; max-width: 100%; }
+            section { padding: 20px; }
+            .back-link { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Back to platform link -->
+    <a href="/" class="back-link">← Return to Dashboard</a>
+
+    <!-- 3D Background Canvas -->
+    <div id="bg-container"></div>
+
+    <!-- Scrollable Content -->
+    <div class="content-wrapper">
+        
+        <!-- SECTION 1: HERO -->
+        <section>
+            <div class="glass-card hero-card">
+                <h1>Transistor. Evolved.</h1>
+                <p>Bridging the quantum gap between physical TCAD modeling and neuromorphic SNN intelligence.</p>
+                <div class="tag">⚡ Core Architecture v2.0</div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE SHEETS -->
+        <section>
+            <div class="glass-card left-card">
+                <h2>Stacked <span>Nanosheets</span></h2>
+                <p>Proprietary vertically stacked silicon channels offer superior gate control, reducing leakage currents while maximizing drive performance.</p>
+                <div class="tag">3x Sheet Stack</div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: THE GATE -->
+        <section>
+            <div class="glass-card right-card">
+                <h2>Quantum <span>Gate All-Around</span></h2>
+                <p>Our specialized GAA architecture wraps the fully depleted channels, enabling extreme scaling beyond traditional FinFET limits.</p>
+                <div class="tag">Multi-Vt Optimization</div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: SNN PREDICTION -->
+        <section>
+            <div class="glass-card left-card">
+                <h2>Neuromorphic <span>Inference</span></h2>
+                <p>LightGBM predictive models compute full electrical parameters and SNN metrics in sub-milliseconds, directly in your browser.</p>
+                <div class="tag" style="border-color: #a78bfa; color: #c4b5fd;">ML Co-Design Active</div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">⌄</div>
+
+    <!-- JavaScript: 3D Nanosheet FET + Scroll Logic -->
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- 1. SETUP 3D SCENE ---
+        const container = document.getElementById('bg-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(-3, 3, 8);
+        camera.lookAt(0, 0.5, 0);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance safe
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        // --- 2. BUILD THE PROCEDURAL NANOSHEET FET ---
+        const fetGroup = new THREE.Group();
+        fetGroup.position.y = 0.5;
+
+        // Materials
+        const substrateMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.8, metalness: 0.2 });
+        const sheetMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x2a4a5a, metalness: 0.8, roughness: 0.2, 
+            clearcoat: 0.1, emissive: 0x000000 
+        });
+        const gateMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x3b82f6, metalness: 0.9, roughness: 0.1, 
+            emissive: 0x1e3a8a, emissiveIntensity: 0.1 
+        });
+        const contactMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.3 });
+
+        // 2a. Substrate
+        const substrate = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, 2), substrateMat);
+        substrate.position.y = -0.15;
+        fetGroup.add(substrate);
+
+        // 2b. Source & Drain Contacts
+        for(let x of [-1.6, 1.6]) {
+            const contact = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 1.2), contactMat);
+            contact.position.set(x, 0.6, 0);
+            fetGroup.add(contact);
+        }
+
+        // 2c. Stacked Nanosheets (3 layers)
+        const sheetYPositions = [0.2, 0.6, 1.0];
+        const sheetMeshes = [];
+        sheetYPositions.forEach((y, index) => {
+            const sheet = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 1.2), sheetMat.clone());
+            sheet.position.set(0, y, 0);
+            fetGroup.add(sheet);
+            sheetMeshes.push(sheet);
+        });
+
+        // 2d. Gate All-Around (Front & Back bars)
+        for(let z of [-0.75, 0.75]) {
+            const gateBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 0.2), gateMat);
+            gateBar.position.set(0, 0.6, z);
+            fetGroup.add(gateBar);
+        }
+
+        scene.add(fetGroup);
+
+        // --- 3. ENVIRONMENT & LIGHTING ---
+        // Ambient
+        scene.add(new THREE.AmbientLight(0x404060, 0.5));
+        
+        // Key lights
+        const light1 = new THREE.DirectionalLight(0x60a5fa, 2);
+        light1.position.set(2, 5, 5);
+        scene.add(light1);
+        
+        const light2 = new THREE.DirectionalLight(0xa78bfa, 1);
+        light2.position.set(-3, 2, -3);
+        scene.add(light2);
+
+        // Rim light
+        const light3 = new THREE.DirectionalLight(0xffffff, 0.5);
+        light3.position.set(0, -2, 4);
+        scene.add(light3);
+
+        // A faint floor grid (adds depth)
+        const gridHelper = new THREE.GridHelper(10, 20, 0x3b82f6, 0x1e3a8a);
+        gridHelper.position.y = -0.4;
+        scene.add(gridHelper);
+
+        // --- 4. PARTICLE SYSTEM (SNN Activation) ---
+        const particleCount = 800;
+        const particleGeo = new THREE.BufferGeometry();
+        const particlePos = new Float32Array(particleCount * 3);
+        for(let i=0; i<particleCount*3; i+=3) {
+            particlePos[i] = (Math.random() - 0.5) * 4;
+            particlePos[i+1] = Math.random() * 3;
+            particlePos[i+2] = (Math.random() - 0.5) * 3;
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+        
+        const particleMat = new THREE.PointsMaterial({
+            color: 0x60a5fa,
+            size: 0.03,
+            transparent: true,
+            opacity: 0,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        fetGroup.add(particles);
+
+        // --- 5. SCROLL-DRIVEN LOGIC ---
+        let targetRotY = 0;
+        let targetZoom = 8;
+        let targetSheetColor = new THREE.Color(0x2a4a5a);
+        let targetGateEmit = 0.1;
+        let targetParticleOp = 0;
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const progress = Math.min(1, scrollY / (maxScroll || 1));
+
+            // Base slow rotation
+            targetRotY = progress * Math.PI * 1.5; 
+
+            // Phase 1: Intro (0 - 25%)
+            if(progress < 0.25) {
+                targetZoom = 8;
+                targetGateEmit = 0.1;
+                targetParticleOp = 0;
+            } 
+            // Phase 2: Focus on Sheets (25% - 50%)
+            else if(progress >= 0.25 && progress < 0.5) {
+                targetZoom = 5.5;
+                targetGateEmit = 0.1;
+                targetParticleOp = 0;
+                const localP = (progress - 0.25) / 0.25;
+                targetSheetColor.setHSL(0.6, 0.8, 0.2 + localP * 0.3); // Turn cyan/glowing
+                sheetMeshes.forEach(m => m.material.color.copy(targetSheetColor));
+            } 
+            // Phase 3: Focus on Gate (50% - 75%)
+            else if(progress >= 0.5 && progress < 0.75) {
+                targetZoom = 4.5;
+                const localP = (progress - 0.5) / 0.25;
+                targetGateEmit = 0.1 + localP * 0.8; // Intense glow
+                targetSheetColor.setHSL(0.6, 0.8, 0.5); // Keep sheets cyan
+                targetParticleOp = 0;
+                sheetMeshes.forEach(m => m.material.color.copy(targetSheetColor));
+            }
+            // Phase 4: Neuromorphic Burst (75% - 100%)
+            else {
+                targetZoom = 6.5;
+                targetGateEmit = 0.8;
+                const localP = (progress - 0.75) / 0.25;
+                targetParticleOp = localP * 0.8; // Fade in particles
+                
+                // Slight tilt for dramatic effect
+                targetRotY = (progress * Math.PI * 1.5) + Math.sin(progress * 20) * 0.1;
+            }
+
+            // Apply Material Changes
+            gateMat.emissiveIntensity = targetGateEmit;
+            particleMat.opacity = targetParticleOp;
+        });
+
+        // --- 6. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Smooth interpolation (easing)
+            fetGroup.rotation.y += (targetRotY - fetGroup.rotation.y) * 0.05;
+            camera.position.z += (targetZoom - camera.position.z) * 0.05;
+            camera.lookAt(0, 0.6, 0);
+
+            // Animate particles
+            const positions = particles.geometry.attributes.position.array;
+            for(let i=1; i<positions.length; i+=3) {
+                positions[i] += 0.01; // Float up
+                if(positions[i] > 3) positions[i] = 0;
+            }
+            positions.forEach; // force updates in some contexts
+            particles.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- 7. RESPONSIVE RESIZE ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

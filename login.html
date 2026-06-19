@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FET2SNN · Login System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a1628;
+            overflow: hidden;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .page-container {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page-container.active {
+            display: flex;
+        }
+
+        .animation-container {
+            flex: 2;
+            position: relative;
+            overflow: hidden;
+            background: #0a1628;
+            min-height: 0;
+        }
+
+        #three-container,
+        #three-container-signup,
+        #three-container-forgot,
+        #three-container-dashboard {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .brand-overlay {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .brand-overlay .logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: #f0f4f8;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-overlay .logo .accent {
+            color: #00d4ff;
+        }
+
+        .brand-overlay .tagline {
+            font-size: 10px;
+            color: rgba(240, 244, 248, 0.25);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .brand-overlay .tagline .highlight {
+            color: #00d4ff;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            z-index: 20;
+            background: rgba(240, 244, 248, 0.03);
+            border: 1px solid rgba(240, 244, 248, 0.04);
+            color: rgba(240, 244, 248, 0.15);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+
+        .back-btn:hover {
+            background: rgba(240, 244, 248, 0.05);
+            border-color: rgba(240, 244, 248, 0.08);
+            color: rgba(240, 244, 248, 0.3);
+        }
+
+        /* ==========================================
+                   LOGIN CONTAINER - NO BORDER LINE
+                   ========================================== */
+        .login-container {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, #0a1628 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 40px;
+            min-height: 200px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* REMOVED the border line */
+        .login-container::before {
+            display: none;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 50px;
+        }
+
+        .login-welcome {
+            flex: 1;
+        }
+
+        .login-welcome .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 14px 4px 10px;
+            background: rgba(0, 212, 255, 0.04);
+            border: 1px solid rgba(0, 212, 255, 0.04);
+            border-radius: 100px;
+            font-size: 9px;
+            color: rgba(0, 212, 255, 0.3);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .login-welcome .badge .dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%,
+            100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .login-welcome .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f0f4f8;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .login-welcome .title .accent {
+            color: #00d4ff;
+        }
+
+        .login-welcome .sub {
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.25);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .login-welcome .features {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+        }
+
+        .login-welcome .features .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: rgba(240, 244, 248, 0.12);
+            font-weight: 400;
+        }
+
+        .login-welcome .features .item .icon {
+            color: rgba(0, 212, 255, 0.2);
+            font-size: 12px;
+        }
+
+        .login-form-wrapper {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 14px;
+        }
+
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(240, 244, 248, 0.15);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .form-group .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(240, 244, 248, 0.02);
+            border: 1px solid rgba(240, 244, 248, 0.04);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .form-group .input-wrap:focus-within {
+            border-color: rgba(0, 212, 255, 0.15);
+            background: rgba(0, 212, 255, 0.02);
+            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.02);
+        }
+
+        .form-group .input-icon {
+            padding: 0 0 0 14px;
+            color: rgba(240, 244, 248, 0.05);
+            font-size: 14px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .form-group .input-wrap:focus-within .input-icon {
+            color: rgba(0, 212, 255, 0.15);
+        }
+
+        .form-group input {
+            flex: 1;
+            padding: 11px 14px 11px 8px;
+            background: transparent;
+            border: none;
+            color: #f0f4f8;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(240, 244, 248, 0.06);
+            font-weight: 300;
+        }
+
+        .form-group .toggle-pass {
+            padding: 0 14px 0 0;
+            background: none;
+            border: none;
+            color: rgba(240, 244, 248, 0.04);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .form-group .toggle-pass:hover {
+            color: rgba(240, 244, 248, 0.12);
+        }
+
+        .form-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .login-btn {
+            padding: 11px 36px;
+            background: linear-gradient(135deg, #1a4a7a, #00d4ff);
+            border: none;
+            border-radius: 10px;
+            color: #0a1628;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.15);
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .form-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .form-links a {
+            color: rgba(240, 244, 248, 0.08);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 400;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .form-links a:hover {
+            color: rgba(240, 244, 248, 0.2);
+        }
+
+        .form-links .divider {
+            color: rgba(240, 244, 248, 0.02);
+        }
+
+        .form-links .signup {
+            color: rgba(0, 212, 255, 0.15);
+            font-weight: 500;
+        }
+
+        .form-links .signup:hover {
+            color: rgba(0, 212, 255, 0.35);
+        }
+
+        /* ==========================================
+                   SIGNUP PAGE
+                   ========================================== */
+        .signup-container {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, #0a1628 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 40px;
+            min-height: 200px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .signup-container::before {
+            display: none;
+        }
+
+        .signup-wrapper {
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .signup-wrapper .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .signup-wrapper .header .title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f0f4f8;
+        }
+
+        .signup-wrapper .header .title .accent {
+            color: #00d4ff;
+        }
+
+        .signup-wrapper .header .sub {
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.15);
+        }
+
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .signup-row {
+            display: flex;
+            gap: 14px;
+        }
+
+        .signup-row .form-group {
+            flex: 1;
+        }
+
+        .signup-btn {
+            padding: 11px 36px;
+            background: linear-gradient(135deg, #1a4a7a, #00d4ff);
+            border: none;
+            border-radius: 10px;
+            color: #0a1628;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+            width: fit-content;
+        }
+
+        .signup-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .signup-btn:hover::before {
+            left: 100%;
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.15);
+        }
+
+        .signup-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 4px;
+        }
+
+        .signup-actions .login-link {
+            color: rgba(240, 244, 248, 0.08);
+            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .signup-actions .login-link:hover {
+            color: rgba(240, 244, 248, 0.2);
+        }
+
+        .signup-actions .login-link .highlight {
+            color: rgba(0, 212, 255, 0.15);
+            font-weight: 500;
+        }
+
+        .signup-actions .login-link .highlight:hover {
+            color: rgba(0, 212, 255, 0.35);
+        }
+
+        /* ==========================================
+                   DASHBOARD PAGE
+                   ========================================== */
+        .dashboard-container {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, #0a1628 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 40px;
+            min-height: 200px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .dashboard-container::before {
+            display: none;
+        }
+
+        .dashboard-wrapper {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .dashboard-left {
+            flex: 1;
+        }
+
+        .dashboard-left .greeting {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f0f4f8;
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-left .greeting .accent {
+            color: #00d4ff;
+        }
+
+        .dashboard-left .user-role {
+            font-size: 13px;
+            color: rgba(0, 212, 255, 0.2);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .dashboard-left .user-org {
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.12);
+            margin-top: 2px;
+        }
+
+        .dashboard-left .sub {
+            font-size: 14px;
+            color: rgba(240, 244, 248, 0.2);
+            margin-top: 8px;
+        }
+
+        .dashboard-left .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 16px;
+        }
+
+        .dashboard-left .stats .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-left .stats .stat .number {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .dashboard-left .stats .stat .label {
+            font-size: 10px;
+            color: rgba(240, 244, 248, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .dashboard-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .dashboard-btn {
+            padding: 10px 28px;
+            background: rgba(240, 244, 248, 0.02);
+            border: 1px solid rgba(240, 244, 248, 0.04);
+            border-radius: 10px;
+            color: rgba(240, 244, 248, 0.15);
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-btn:hover {
+            background: rgba(240, 244, 248, 0.04);
+            border-color: rgba(240, 244, 248, 0.08);
+            color: rgba(240, 244, 248, 0.3);
+        }
+
+        .dashboard-btn.primary {
+            background: linear-gradient(135deg, #1a4a7a, #00d4ff);
+            border: none;
+            color: #0a1628;
+            font-weight: 700;
+        }
+
+        .dashboard-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.15);
+        }
+
+        /* ==========================================
+                   FORGOT PASSWORD PAGE
+                   ========================================== */
+        .forgot-container {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, #0a1628 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 40px;
+            min-height: 200px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .forgot-container::before {
+            display: none;
+        }
+
+        .forgot-wrapper {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            text-align: center;
+        }
+
+        .forgot-wrapper .icon {
+            font-size: 40px;
+            opacity: 0.2;
+        }
+
+        .forgot-wrapper .title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f0f4f8;
+        }
+
+        .forgot-wrapper .sub {
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.2);
+            max-width: 400px;
+        }
+
+        .forgot-wrapper .form-group {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .forgot-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .forgot-btn {
+            padding: 11px 36px;
+            background: linear-gradient(135deg, #1a4a7a, #00d4ff);
+            border: none;
+            border-radius: 10px;
+            color: #0a1628;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .forgot-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .forgot-btn:hover::before {
+            left: 100%;
+        }
+
+        .forgot-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.15);
+        }
+
+        .forgot-wrapper .back-link {
+            color: rgba(240, 244, 248, 0.08);
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .forgot-wrapper .back-link:hover {
+            color: rgba(240, 244, 248, 0.2);
+        }
+
+        .forgot-wrapper .back-link .highlight {
+            color: rgba(0, 212, 255, 0.15);
+            font-weight: 500;
+        }
+
+        /* ==========================================
+                   TOAST
+                   ========================================== */
+        .toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            z-index: 100;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.6s ease;
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            color: rgba(0, 212, 255, 0.8);
+        }
+
+        .toast.error {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.15);
+            color: rgba(255, 107, 107, 0.8);
+        }
+
+        .toast.info {
+            background: rgba(65, 105, 225, 0.1);
+            border: 1px solid rgba(65, 105, 225, 0.15);
+            color: rgba(92, 127, 246, 0.9);
+        }
+
+        /* ==========================================
+                   RESPONSIVE
+                   ========================================== */
+        @media (max-width: 1024px) {
+            .login-wrapper {
+                gap: 30px;
+            }
+            .login-welcome .features {
+                gap: 16px;
+            }
+            .dashboard-wrapper {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            .dashboard-left .stats {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .login-wrapper {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .login-welcome .badge {
+                margin: 0 auto 8px;
+            }
+            .login-welcome .title {
+                font-size: 20px;
+            }
+            .login-welcome .features {
+                justify-content: center;
+            }
+            .login-form-wrapper {
+                width: 100%;
+                max-width: 500px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .form-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .brand-overlay {
+                top: 16px;
+                left: 20px;
+            }
+            .brand-overlay .logo {
+                font-size: 20px;
+            }
+            .back-btn {
+                top: 16px;
+                right: 20px;
+                font-size: 10px;
+                padding: 6px 14px;
+            }
+            .signup-row {
+                flex-direction: column;
+            }
+            .signup-wrapper .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 4px;
+            }
+            .signup-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .signup-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .dashboard-wrapper {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+            .dashboard-left .stats {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .dashboard-right {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .forgot-wrapper .title {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .login-container,
+            .signup-container,
+            .dashboard-container,
+            .forgot-container {
+                padding: 16px 20px;
+                min-height: auto;
+            }
+            .login-welcome .title {
+                font-size: 17px;
+            }
+            .login-welcome .sub {
+                font-size: 11px;
+            }
+            .login-welcome .features .item {
+                font-size: 9px;
+            }
+            .form-group input {
+                padding: 9px 12px 9px 6px;
+                font-size: 12px;
+            }
+            .form-group .input-icon {
+                padding: 0 0 0 10px;
+                font-size: 12px;
+            }
+            .login-btn {
+                padding: 9px 24px;
+                font-size: 12px;
+            }
+            .form-links {
+                font-size: 10px;
+            }
+            .brand-overlay {
+                top: 12px;
+                left: 16px;
+            }
+            .brand-overlay .logo {
+                font-size: 16px;
+            }
+            .brand-overlay .tagline {
+                font-size: 8px;
+            }
+            .back-btn {
+                top: 12px;
+                right: 16px;
+                font-size: 9px;
+                padding: 4px 12px;
+            }
+            .signup-wrapper .header .title {
+                font-size: 17px;
+            }
+            .signup-wrapper .header .sub {
+                font-size: 10px;
+            }
+            .dashboard-left .greeting {
+                font-size: 20px;
+            }
+            .dashboard-left .stats .stat .number {
+                font-size: 18px;
+            }
+            .dashboard-btn {
+                padding: 8px 18px;
+                font-size: 10px;
+            }
+            .forgot-wrapper .title {
+                font-size: 16px;
+            }
+            .forgot-wrapper .sub {
+                font-size: 11px;
+            }
+            .forgot-btn {
+                padding: 9px 24px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .login-wrapper {
+                gap: 10px;
+            }
+            .form-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .login-btn {
+                width: 100%;
+            }
+            .form-links {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Google Sign-In Integration */
+        .google-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0 16px;
+            color: rgba(240, 244, 248, 0.35);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .google-divider::before,
+        .google-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .google-divider:not(:empty)::before {
+            margin-right: 1.25em;
+        }
+        .google-divider:not(:empty)::after {
+            margin-left: 1.25em;
+        }
+        .google-btn-wrap {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+    TOAST NOTIFICATION
+    ========================================== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ==========================================
+    PAGE 1: LOGIN
+    ========================================== -->
+    <div class="page-container active" id="loginPage">
+        <div class="animation-container">
+            <div id="three-container"></div>
+            <div class="brand-overlay">
+                <div class="logo">FET2<span class="accent">SNN</span></div>
+                <div class="tagline">OneClick · <span class="highlight">One Inference</span></div>
+            </div>
+        </div>
+
+        <div class="login-container">
+            <div class="login-wrapper">
+                <div class="login-welcome">
+                    <div class="badge"><span class="dot"></span> Secure Access</div>
+                    <div class="title">Welcome <span class="accent">Back</span></div>
+                    <div class="sub">Access your TCAD · SNN research ecosystem</div>
+                    <div class="features">
+                        <span class="item"><span class="icon">✦</span> OneClick Inference</span>
+                        <span class="item"><span class="icon">✦</span> Research Hub</span>
+                        <span class="item"><span class="icon">✦</span> 10K+ Users</span>
+                    </div>
+                </div>
+
+                <div class="login-form-wrapper">
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="loginEmail">Email</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">📧</span>
+                                    <input type="email" id="loginEmail" placeholder="researcher@institution.edu" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">🔒</span>
+                                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                                    <button type="button" class="toggle-pass" onclick="togglePassword('loginPassword')">👁</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="login-btn">Sign In →</button>
+                            <div class="form-links">
+                                <a onclick="showPage('forgotPage')">Forgot password?</a>
+                                <span class="divider">·</span>
+                                <a class="signup" onclick="showPage('signupPage')">Create account</a>
+                            </div>
+                        </div>
+                        <!-- Google Sign-In -->
+                        <div class="google-divider">
+                            <span>or continue with</span>
+                        </div>
+                        <div id="google-signin-btn" class="google-btn-wrap"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    PAGE 2: SIGNUP
+    ========================================== -->
+    <div class="page-container" id="signupPage">
+        <div class="animation-container">
+            <div id="three-container-signup"></div>
+            <div class="brand-overlay">
+                <div class="logo">FET2<span class="accent">SNN</span></div>
+                <div class="tagline">OneClick · <span class="highlight">One Inference</span></div>
+            </div>
+            <button class="back-btn" onclick="showPage('loginPage')">← Back</button>
+        </div>
+
+        <div class="signup-container">
+            <div class="signup-wrapper">
+                <div class="header">
+                    <div>
+                        <div class="title">Create <span class="accent">Account</span></div>
+                        <div class="sub">Join the FET2SNN research community</div>
+                    </div>
+                </div>
+
+                <form class="signup-form" onsubmit="handleSignup(event)">
+                    <div class="signup-row">
+                        <div class="form-group">
+                            <label for="signupFullName">Full Name</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">👤</span>
+                                <input type="text" id="signupFullName" placeholder="Dr. John Doe" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email Address</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">📧</span>
+                                <input type="email" id="signupEmail" placeholder="researcher@institution.edu" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="signup-row">
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="signupPassword" placeholder="Create a strong password" required>
+                                <button type="button" class="toggle-pass" onclick="togglePassword('signupPassword')">👁</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupConfirm">Confirm Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">✓</span>
+                                <input type="password" id="signupConfirm" placeholder="Confirm your password" required>
+                                <button type="button" class="toggle-pass" onclick="togglePassword('signupConfirm')">👁</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="signup-row">
+                        <div class="form-group">
+                            <label for="signupInstitution">Institution / Organization</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">🏛️</span>
+                                <input type="text" id="signupInstitution" placeholder="MIT, Stanford, etc." required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupRole">Role</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">🎯</span>
+                                <input type="text" id="signupRole" placeholder="Researcher, Student, Engineer" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="signup-actions">
+                        <button type="submit" class="signup-btn">Create Account →</button>
+                        <span class="login-link">Already have an account? <span class="highlight" onclick="showPage('loginPage')">Sign in</span></span>
+                    </div>
+                    <!-- Google Sign-In -->
+                    <div class="google-divider">
+                        <span>or sign up with</span>
+                    </div>
+                    <div id="google-signup-btn" class="google-btn-wrap"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    PAGE 3: FORGOT PASSWORD
+    ========================================== -->
+    <div class="page-container" id="forgotPage">
+        <div class="animation-container">
+            <div id="three-container-forgot"></div>
+            <div class="brand-overlay">
+                <div class="logo">FET2<span class="accent">SNN</span></div>
+                <div class="tagline">OneClick · <span class="highlight">One Inference</span></div>
+            </div>
+            <button class="back-btn" onclick="showPage('loginPage')">← Back</button>
+        </div>
+
+        <div class="forgot-container">
+            <div class="forgot-wrapper">
+                <div class="icon">🔐</div>
+                <div class="title">Reset Password</div>
+                <div class="sub">Enter your email address and we'll send you a link to reset your password.</div>
+
+                <form onsubmit="handleForgot(event)" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:16px;">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email Address</label>
+                        <div class="input-wrap">
+                            <span class="input-icon">📧</span>
+                            <input type="email" id="forgotEmail" placeholder="researcher@institution.edu" required>
+                        </div>
+                    </div>
+                    <div class="forgot-actions">
+                        <button type="submit" class="forgot-btn">Send Reset Link →</button>
+                    </div>
+                </form>
+
+                <span class="back-link">Remember your password? <span class="highlight" onclick="showPage('loginPage')">Back to login</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    PAGE 4: DASHBOARD
+    ========================================== -->
+    <div class="page-container" id="dashboardPage">
+        <div class="animation-container">
+            <div id="three-container-dashboard"></div>
+            <div class="brand-overlay">
+                <div class="logo">FET2<span class="accent">SNN</span></div>
+                <div class="tagline">OneClick · <span class="highlight">One Inference</span></div>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="dashboard-wrapper">
+                <div class="dashboard-left">
+                    <div class="greeting">Welcome, <span class="accent" id="dashboardName">Researcher</span> 👋</div>
+                    <div class="user-role" id="dashboardRole">Role</div>
+                    <div class="user-org" id="dashboardOrg">Institution</div>
+                    <div class="sub">You're now part of the FET2SNN research ecosystem</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="number" id="statProjects">0</span>
+                            <span class="label">Active Projects</span>
+                        </div>
+                        <div class="stat">
+                            <span class="number" id="statInferences">0</span>
+                            <span class="label">Inferences Run</span>
+                        </div>
+                        <div class="stat">
+                            <span class="number" id="statCollaborators">0</span>
+                            <span class="label">Collaborators</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-right">
+                    <!-- Dashboard button opens your main website -->
+                    <button class="dashboard-btn" onclick="window.location.href='/'">📊 Dashboard</button>
+                    <button class="dashboard-btn" onclick="showToast('📁 Projects module is coming soon!', 'info')">📁 Projects</button>
+                    <button class="dashboard-btn primary" onclick="handleLogout()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- ==========================================
+    GOOGLE IDENTITY SERVICES & THREE.JS
+    ========================================== -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ==========================================
+        // REAL-TIME AUTH (Flask Backend API)
+        // ==========================================
+        const API_BASE = ''; // same origin
+        let currentUser = null;
+        let authToken = localStorage.getItem('fet2snn_token') || null;
+
+        // ==========================================
+        // API HELPER
+        // ==========================================
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const opts = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            };
+            if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+            if (body) opts.body = JSON.stringify(body);
+            const resp = await fetch(API_BASE + endpoint, opts);
+            return resp.json();
+        }
+
+        // ==========================================
+        // SESSION RESTORE ON LOAD
+        // ==========================================
+        async function restoreSession() {
+            if (!authToken) return;
+            try {
+                const data = await apiCall('/api/auth/verify');
+                if (data.status === 'success') {
+                    currentUser = data.user;
+                    updateDashboard();
+                    showPage('dashboardPage');
+                } else {
+                    localStorage.removeItem('fet2snn_token');
+                    authToken = null;
+                }
+            } catch (e) {
+                // Network error – stay on login
+            }
+        }
+
+        // ==========================================
+        // GOOGLE SIGN-IN INITIALIZATION & HANDLER
+        // ==========================================
+        async function initGoogleSignIn() {
+            try {
+                const config = await apiCall('/api/auth/config');
+                const clientId = config.google_client_id;
+                
+                if (!clientId) {
+                    console.warn('[GOOGLE SIGN-IN] GOOGLE_CLIENT_ID is not configured in .env');
+                    setupGooglePlaceholderButtons("Google Sign-In (Needs setup)");
+                    return;
+                }
+
+                // Wait for the Google library to load if needed
+                if (typeof google === 'undefined') {
+                    setTimeout(initGoogleSignIn, 500);
+                    return;
+                }
+
+                google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: handleGoogleCredential
+                });
+
+                const buttonConfig = {
+                    type: 'standard',
+                    theme: 'filled_blue',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'rectangular',
+                    logo_alignment: 'left',
+                    width: '320'
+                };
+
+                const signinContainer = document.getElementById('google-signin-btn');
+                if (signinContainer) {
+                    google.accounts.id.renderButton(signinContainer, buttonConfig);
+                }
+
+                const signupContainer = document.getElementById('google-signup-btn');
+                if (signupContainer) {
+                    google.accounts.id.renderButton(signupContainer, buttonConfig);
+                }
+            } catch (err) {
+                console.error('[GOOGLE SIGN-IN] Failed to initialize:', err);
+                setupGooglePlaceholderButtons("Failed to load Google Sign-In");
+            }
+        }
+
+        function setupGooglePlaceholderButtons(message) {
+            const wrapClass = 'style="width: 320px; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 8px; color: rgba(240,244,248,0.5); font-size: 13px; text-align: center; cursor: pointer; transition: all 0.3s ease;"';
+            const hoverStyle = 'onmouseover="this.style.background=\'rgba(255,255,255,0.06)\'; this.style.borderColor=\'rgba(0,212,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\'; this.style.borderColor=\'rgba(255,255,255,0.15)\'"';
+            
+            const signinContainer = document.getElementById('google-signin-btn');
+            if (signinContainer) {
+                signinContainer.innerHTML = `<div ${wrapClass} ${hoverStyle} onclick="showToast('🔧 Setup: Add GOOGLE_CLIENT_ID in your .env file to enable Google Sign-In', 'info')">🤖 ${message}</div>`;
+            }
+
+            const signupContainer = document.getElementById('google-signup-btn');
+            if (signupContainer) {
+                signupContainer.innerHTML = `<div ${wrapClass} ${hoverStyle} onclick="showToast('🔧 Setup: Add GOOGLE_CLIENT_ID in your .env file to enable Google Sign-In', 'info')">🤖 ${message}</div>`;
+            }
+        }
+
+        async function handleGoogleCredential(response) {
+            const credential = response.credential;
+            try {
+                showToast('Verifying Google account...', 'info');
+                const data = await apiCall('/api/auth/google', 'POST', { credential });
+
+                if (data.status === 'success') {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('fet2snn_token', authToken);
+                    showToast('✅ ' + data.message, 'success');
+                    setTimeout(() => {
+                        updateDashboard();
+                        showPage('dashboardPage');
+                    }, 800);
+                } else {
+                    showToast('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                showToast('❌ Google authentication failed', 'error');
+            }
+        }
+
+        // ==========================================
+        // PAGE NAVIGATION
+        // ==========================================
+        function showPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(el => {
+                el.classList.remove('active');
+            });
+            const target = document.getElementById(pageId);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            // Initialize Three.js for the page
+            setTimeout(() => {
+                if (pageId === 'loginPage') {
+                    initThree('three-container');
+                } else if (pageId === 'signupPage') {
+                    initThree('three-container-signup');
+                } else if (pageId === 'forgotPage') {
+                    initThree('three-container-forgot');
+                } else if (pageId === 'dashboardPage') {
+                    initThree('three-container-dashboard');
+                }
+            }, 50);
+        }
+
+        // ==========================================
+        // PASSWORD TOGGLE
+        // ==========================================
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = input.parentElement.querySelector('.toggle-pass');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+            }
+        }
+
+        // ==========================================
+        // TOAST NOTIFICATION
+        // ==========================================
+        let toastTimeout;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            clearTimeout(toastTimeout);
+            void toast.offsetWidth;
+            toast.classList.add('show');
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function setButtonLoading(btn, loading, originalText) {
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.original = btn.textContent;
+                btn.textContent = 'Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = originalText || btn.dataset.original || 'Submit';
+            }
+        }
+
+        // ==========================================
+        // LOGIN HANDLER (Real API)
+        // ==========================================
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            if (!email || !password) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            setButtonLoading(btn, true);
+
+            try {
+                const data = await apiCall('/api/auth/login', 'POST', { email, password });
+
+                if (data.status === 'success') {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('fet2snn_token', authToken);
+                    showToast('✅ ' + data.message, 'success');
+                    setTimeout(() => {
+                        updateDashboard();
+                        showPage('dashboardPage');
+                    }, 800);
+                } else {
+                    showToast('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                showToast('❌ Unable to connect. Is the server running?', 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Sign In →');
+            }
+        }
+
+        // ==========================================
+        // SIGNUP HANDLER (Real API)
+        // ==========================================
+        async function handleSignup(event) {
+            event.preventDefault();
+            const name = document.getElementById('signupFullName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const institution = document.getElementById('signupInstitution').value.trim();
+            const role = document.getElementById('signupRole').value.trim();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            if (!name || !email || !password || !confirm || !institution || !role) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (password !== confirm) {
+                showToast('❌ Passwords do not match!', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('❌ Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            setButtonLoading(btn, true);
+
+            try {
+                const data = await apiCall('/api/auth/signup', 'POST', {
+                    fullName: name, email, password, institution, role
+                });
+
+                if (data.status === 'success') {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('fet2snn_token', authToken);
+                    showToast('🎉 ' + data.message, 'success');
+                    setTimeout(() => {
+                        updateDashboard();
+                        showPage('dashboardPage');
+                    }, 1000);
+                } else {
+                    showToast('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                showToast('❌ Unable to connect. Is the server running?', 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Create Account →');
+            }
+        }
+
+        // ==========================================
+        // FORGOT PASSWORD HANDLER (Real API)
+        // ==========================================
+        async function handleForgot(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            if (!email) {
+                showToast('Please enter your email address', 'error');
+                return;
+            }
+
+            setButtonLoading(btn, true);
+
+            try {
+                const data = await apiCall('/api/auth/forgot-password', 'POST', { email });
+
+                showToast('📧 ' + data.message, 'success');
+
+                // In dev mode, show the reset link
+                if (data.dev_reset_link) {
+                    showToast('🔧 Dev link: ' + data.dev_reset_link, 'info');
+                    console.log('Dev Reset Link:', data.dev_reset_link);
+                }
+
+                setTimeout(() => { showPage('loginPage'); }, 2500);
+            } catch (err) {
+                showToast('❌ Unable to connect. Is the server running?', 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Send Reset Link →');
+            }
+        }
+
+        // ==========================================
+        // UPDATE DASHBOARD
+        // ==========================================
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            document.getElementById('dashboardName').textContent = currentUser.firstName || 'Researcher';
+            document.getElementById('dashboardRole').textContent =
+                (currentUser.role || '') + (currentUser.institution ? ' · ' + currentUser.institution : '');
+            document.getElementById('dashboardOrg').textContent =
+                'Member since ' + (currentUser.joinDate || 'Recently');
+
+            const stats = currentUser.stats || {};
+            document.getElementById('statProjects').textContent = stats.projects ?? 0;
+            document.getElementById('statInferences').textContent = stats.inferences ?? 0;
+            document.getElementById('statCollaborators').textContent = stats.collaborators ?? 0;
+        }
+
+        // ==========================================
+        // LOGOUT HANDLER (Real API)
+        // ==========================================
+        async function handleLogout() {
+            try {
+                await apiCall('/api/auth/logout', 'POST', { token: authToken });
+            } catch (e) { /* ignore */ }
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('fet2snn_token');
+            showToast('👋 Logged out successfully', 'success');
+            setTimeout(() => {
+                showPage('loginPage');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            }, 800);
+        }
+
+        // Restore session on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            restoreSession();
+            initGoogleSignIn();
+        });
+
+        // ==========================================
+// ==========================================
+// THREE.JS ANIMATION - COMPLETE
+// ==========================================
+let threeInstance = null;
+let animationId = null;
+
+function initThree(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (threeInstance) {
+        const oldContainer = threeInstance.container;
+        if (oldContainer && oldContainer !== container) {
+            const canvas = threeInstance.renderer.domElement;
+            if (canvas && canvas.parentNode) {
+                canvas.parentNode.removeChild(canvas);
+            }
+        }
+        container.appendChild(threeInstance.renderer.domElement);
+        threeInstance.container = container;
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        threeInstance.camera.aspect = w / h;
+        threeInstance.camera.updateProjectionMatrix();
+        threeInstance.renderer.setSize(w, h);
+        if (threeInstance.paused) {
+            threeInstance.paused = false;
+            animateScene();
+        }
+        return;
+    }
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a1628);
+    scene.fog = new THREE.Fog(0x0a1628, 12, 30);
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 2.0, 8);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    container.appendChild(renderer.domElement);
+
+    threeInstance = {
+        scene, camera, renderer, container,
+        animating: true, progress: 0, time: 0,
+        cameraPos: new THREE.Vector3(0, 2.0, 8),
+        cameraTarget: new THREE.Vector3(0, 0, 0),
+        isAnimating: true, paused: false,
+    };
+
+    const inst = threeInstance;
+
+    const colorArray = [0x00d4ff, 0x1a4a7a, 0x88d8f7, 0x0d2b4a, 0x4a9ed6, 0x2a6a9a, 0x66c4f0, 0x1a5a8a];
+    function randomColor() { return colorArray[Math.floor(Math.random() * colorArray.length)]; }
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x1a3a5a, 0.35);
+    scene.add(ambientLight);
+    const lightColors = [0x00d4ff, 0x1a4a7a, 0x88d8f7, 0x4a9ed6];
+    const mainLights = [];
+    lightColors.forEach((col, i) => {
+        const light = new THREE.DirectionalLight(col, 0.6);
+        const angle = (i / lightColors.length) * Math.PI * 2;
+        light.position.set(Math.sin(angle) * 6, 3 + Math.cos(i * 1.5) * 2, Math.cos(angle) * 6);
+        scene.add(light);
+        mainLights.push(light);
+    });
+    const rimLight = new THREE.DirectionalLight(0x1a4a7a, 0.5);
+    rimLight.position.set(0, -3, -6);
+    scene.add(rimLight);
+    const backLight = new THREE.DirectionalLight(0x00d4ff, 0.3);
+    backLight.position.set(0, 0, -8);
+    scene.add(backLight);
+
+    // Transistor Group
+    const transistorGroup = new THREE.Group();
+    scene.add(transistorGroup);
+
+    const bodyMat = new THREE.MeshPhysicalMaterial({
+        color: 0x0d2b4a, metalness: 0.7, roughness: 0.15,
+        transparent: true, opacity: 0, envMapIntensity: 1.0,
+        emissive: 0x1a4a7a, emissiveIntensity: 0.05,
+    });
+    const bodyGeo = new THREE.BoxGeometry(2.2, 0.55, 1.5);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = -0.25;
+    body.castShadow = true;
+    body.scale.set(0, 0, 0);
+    transistorGroup.add(body);
+
+    const stripeColors = [0x00d4ff, 0x1a4a7a, 0x88d8f7, 0x2a6a9a, 0x4a9ed6];
+    const stripes = [];
+    stripeColors.forEach((col, i) => {
+        const mat = new THREE.MeshPhysicalMaterial({
+            color: col, emissive: col, emissiveIntensity: 0.15,
+            metalness: 0.3, roughness: 0.2, transparent: true, opacity: 0,
+        });
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.025, 1.1), mat);
+        stripe.position.set(0, -0.25 + (i - 2) * 0.065, 0);
+        stripe.scale.set(0, 0, 0);
+        transistorGroup.add(stripe);
+        stripes.push(stripe);
+    });
+
+    const gateMat = new THREE.MeshPhysicalMaterial({
+        color: 0x1a4a7a, metalness: 0.4, roughness: 0.15,
+        transparent: true, opacity: 0, emissive: 0x00d4ff, emissiveIntensity: 0.1,
+    });
+    const gateGeo = new THREE.BoxGeometry(0.75, 0.15, 0.75);
+    const gate = new THREE.Mesh(gateGeo, gateMat);
+    gate.position.set(0, 0.1, 0);
+    gate.scale.set(0, 0, 0);
+    transistorGroup.add(gate);
+
+    const pinMat = new THREE.MeshPhysicalMaterial({
+        color: 0x2a6a9a, metalness: 0.9, roughness: 0.08,
+        transparent: true, opacity: 0, envMapIntensity: 1.5,
+    });
+    const pinGroup = new THREE.Group();
+    transistorGroup.add(pinGroup);
+    const pins = [];
+    for (let i = -1; i <= 1; i++) {
+        const pinGeo = new THREE.CylinderGeometry(0.05, 0.075, 0.75, 10);
+        const pin = new THREE.Mesh(pinGeo, pinMat);
+        pin.position.set(i * 0.45, -0.6, 0);
+        pin.rotation.x = 0.05;
+        pin.scale.set(0, 0, 0);
+        pin.castShadow = true;
+        pinGroup.add(pin);
+        pins.push(pin);
+    }
+
+    const traceColors = [0x00d4ff, 0x88d8f7, 0x1a4a7a, 0x4a9ed6, 0x00d4ff];
+    const tracePoints = [
+        [-0.5, 0.15, 0.35, 0.5, 0.15, 0.35],
+        [-0.5, 0.15, -0.35, 0.5, 0.15, -0.35],
+        [-0.35, 0.15, 0.5, -0.35, 0.15, -0.5],
+        [0.35, 0.15, 0.5, 0.35, 0.15, -0.5],
+        [-0.7, -0.1, 0, 0.7, -0.1, 0],
+    ];
+    const traces = [];
+    tracePoints.forEach((pts, idx) => {
+        const mat = new THREE.LineBasicMaterial({
+            color: traceColors[idx % traceColors.length],
+            transparent: true, opacity: 0,
+        });
+        const geo = new THREE.BufferGeometry();
+        const verts = new Float32Array(pts);
+        geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+        const line = new THREE.Line(geo, mat);
+        transistorGroup.add(line);
+        traces.push(line);
+    });
+
+    const nodePositions = [
+        [-0.7, 0.12, 0], [0.7, 0.12, 0],
+        [0, 0.25, 0.5], [0, 0.25, -0.5],
+        [-0.4, -0.18, 0.4], [0.4, -0.18, -0.4],
+        [-0.4, -0.18, -0.4], [0.4, -0.18, 0.4],
+    ];
+    const glowNodes = [];
+    nodePositions.forEach((pos, idx) => {
+        const col = colorArray[idx % colorArray.length];
+        const mat = new THREE.MeshPhysicalMaterial({
+            color: col, emissive: col, emissiveIntensity: 0.6,
+            transparent: true, opacity: 0, roughness: 0.05, metalness: 0.1,
+        });
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), mat);
+        sphere.position.set(pos[0], pos[1], pos[2]);
+        sphere.scale.set(0, 0, 0);
+        transistorGroup.add(sphere);
+        glowNodes.push(sphere);
+    });
+
+    // Neural Network Group
+    const neuralGroup = new THREE.Group();
+    neuralGroup.visible = false;
+    scene.add(neuralGroup);
+
+    const neuralNodeCount = 180;
+    const neuralNodes = [];
+    const neuralPositions = [];
+    const nodeBaseColors = [];
+    const nodeSizes = [];
+
+    for (let i = 0; i < neuralNodeCount; i++) {
+        const goldenRatio = (1 + Math.sqrt(5)) / 2;
+        const theta = 2 * Math.PI * i / goldenRatio;
+        const phi = Math.acos(1 - 2 * (i + 0.5) / neuralNodeCount);
+        const cluster = Math.random() < 0.25 ? 0.5 : 1.0;
+        const r = 0.8 + Math.random() * 2.5 * cluster;
+        const x = Math.sin(phi) * Math.cos(theta) * r;
+        const y = Math.sin(phi) * Math.sin(theta) * r * 0.7;
+        const z = Math.cos(phi) * r * 0.8;
+        neuralPositions.push({ x, y, z });
+        nodeBaseColors.push(new THREE.Color(randomColor()));
+        nodeSizes.push(0.03 + Math.random() * 0.05);
+    }
+
+    neuralPositions.forEach((pos, idx) => {
+        const col = nodeBaseColors[idx];
+        const size = nodeSizes[idx];
+        const mat = new THREE.MeshPhysicalMaterial({
+            color: col, emissive: col, emissiveIntensity: 0.8,
+            transparent: true, opacity: 0, roughness: 0.1, metalness: 0.05, envMapIntensity: 0.5,
+        });
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(size, 10, 10), mat);
+        sphere.position.set(pos.x, pos.y, pos.z);
+        sphere.scale.set(0, 0, 0);
+        neuralGroup.add(sphere);
+        neuralNodes.push(sphere);
+    });
+
+    const neuralLines = [];
+    const lineData = [];
+    for (let i = 0; i < neuralPositions.length; i++) {
+        for (let j = i + 1; j < neuralPositions.length; j++) {
+            const dx = neuralPositions[i].x - neuralPositions[j].x;
+            const dy = neuralPositions[i].y - neuralPositions[j].y;
+            const dz = neuralPositions[i].z - neuralPositions[j].z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < 2.2 && Math.random() < 0.15) {
+                const col1 = nodeBaseColors[i];
+                const col2 = nodeBaseColors[j];
+                const midCol = col1.clone().lerp(col2, 0.5);
+                const mat = new THREE.LineBasicMaterial({
+                    color: midCol, transparent: true, opacity: 0,
+                    blending: THREE.AdditiveBlending,
+                });
+                const geo = new THREE.BufferGeometry();
+                const verts = new Float32Array([
+                    neuralPositions[i].x, neuralPositions[i].y, neuralPositions[i].z,
+                    neuralPositions[j].x, neuralPositions[j].y, neuralPositions[j].z
+                ]);
+                geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+                const line = new THREE.Line(geo, mat);
+                neuralGroup.add(line);
+                neuralLines.push(line);
+                lineData.push({ line: line, node1: i, node2: j, phase: Math.random() * Math.PI * 2, speed: 0.3 + Math.random() * 0.7 });
+            }
+        }
+    }
+
+    // Glow Rings
+    const ringGroup = new THREE.Group();
+    neuralGroup.add(ringGroup);
+    const ringMat = new THREE.MeshPhysicalMaterial({
+        color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.2,
+        transparent: true, opacity: 0, roughness: 0.1, metalness: 0.0,
+        side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+    });
+    const rings = [];
+    for (let i = 0; i < 6; i++) {
+        const radius = 1.6 + i * 0.7;
+        const ringGeo = new THREE.TorusGeometry(radius, 0.012, 20, 80);
+        const ring = new THREE.Mesh(ringGeo, ringMat.clone());
+        ring.rotation.x = Math.PI / 2 + (i - 2.5) * 0.12;
+        ring.rotation.z = i * 0.3;
+        ring.material.opacity = 0;
+        ringGroup.add(ring);
+        rings.push(ring);
+    }
+
+    const ringGroup2 = new THREE.Group();
+    neuralGroup.add(ringGroup2);
+    const ringMat2 = new THREE.MeshPhysicalMaterial({
+        color: 0x1a4a7a, emissive: 0x1a4a7a, emissiveIntensity: 0.15,
+        transparent: true, opacity: 0, roughness: 0.1, metalness: 0.0,
+        side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+    });
+    const rings2 = [];
+    for (let i = 0; i < 4; i++) {
+        const radius = 2.0 + i * 0.8;
+        const ringGeo = new THREE.TorusGeometry(radius, 0.008, 16, 70);
+        const ring = new THREE.Mesh(ringGeo, ringMat2.clone());
+        ring.rotation.x = Math.PI / 3 + (i - 2) * 0.15;
+        ring.rotation.y = i * 0.5;
+        ring.material.opacity = 0;
+        ringGroup2.add(ring);
+        rings2.push(ring);
+    }
+
+    // Background Particles
+    const bgParticleCount = 600;
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(bgParticleCount * 3);
+    const bgColors = new Float32Array(bgParticleCount * 3);
+    const bgSizes = new Float32Array(bgParticleCount);
+    for (let i = 0; i < bgParticleCount; i++) {
+        const radius = 10 + Math.random() * 28;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        bgPos[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
+        bgPos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.5;
+        bgPos[i * 3 + 2] = Math.cos(phi) * radius;
+        const c = new THREE.Color(randomColor());
+        bgColors[i * 3] = c.r * 0.3;
+        bgColors[i * 3 + 1] = c.g * 0.3;
+        bgColors[i * 3 + 2] = c.b * 0.3;
+        bgSizes[i] = 0.015 + Math.random() * 0.05;
+    }
+    bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+    bgGeo.setAttribute('color', new THREE.BufferAttribute(bgColors, 3));
+    bgGeo.setAttribute('size', new THREE.BufferAttribute(bgSizes, 1));
+    const bgMat = new THREE.PointsMaterial({
+        size: 0.03, transparent: true, opacity: 0.25,
+        vertexColors: true, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+    });
+    const bgParticles = new THREE.Points(bgGeo, bgMat);
+    scene.add(bgParticles);
+
+    // Explosion Particles
+    const explosionMat = new THREE.PointsMaterial({
+        color: 0x00d4ff, size: 0.08, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, sizeAttenuation: true,
+    });
+    const explosionGeo = new THREE.BufferGeometry();
+    const explosionPos = new Float32Array(400 * 3);
+    const explosionVel = [];
+    for (let i = 0; i < 400; i++) {
+        explosionPos[i * 3] = 0;
+        explosionPos[i * 3 + 1] = 0;
+        explosionPos[i * 3 + 2] = 0;
+        const speed = 0.03 + Math.random() * 0.18;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        explosionVel.push({
+            x: Math.sin(phi) * Math.cos(theta) * speed,
+            y: Math.sin(phi) * Math.sin(theta) * speed * 0.6,
+            z: Math.cos(phi) * speed,
+        });
+    }
+    explosionGeo.setAttribute('position', new THREE.BufferAttribute(explosionPos, 3));
+    const explosionPoints = new THREE.Points(explosionGeo, explosionMat);
+    scene.add(explosionPoints);
+
+    // Sparkle Particles
+    const sparkleMat = new THREE.PointsMaterial({
+        color: 0x88d8f7, size: 0.04, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, sizeAttenuation: true,
+    });
+    const sparkleGeo = new THREE.BufferGeometry();
+    const sparklePos = new Float32Array(150 * 3);
+    const sparkleVel = [];
+    for (let i = 0; i < 150; i++) {
+        sparklePos[i * 3] = (Math.random() - 0.5) * 6;
+        sparklePos[i * 3 + 1] = (Math.random() - 0.5) * 4;
+        sparklePos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+        sparkleVel.push({
+            x: (Math.random() - 0.5) * 0.02,
+            y: (Math.random() - 0.5) * 0.02,
+            z: (Math.random() - 0.5) * 0.02,
+        });
+    }
+    sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePos, 3));
+    const sparklePoints = new THREE.Points(sparkleGeo, sparkleMat);
+    scene.add(sparklePoints);
+
+    // Easing Functions
+    function easeOutBack(x) { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); }
+    function easeInOutCubic(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+    function easeOutCubic(x) { return 1 - Math.pow(1 - x, 3); }
+    function easeInCubic(x) { return x * x * x; }
+    function easeOutQuart(x) { return 1 - Math.pow(1 - x, 4); }
+    function easeOutElastic(x) { const c4 = (2 * Math.PI) / 3; return x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1; }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function resetScene() {
+        transistorGroup.visible = true;
+        neuralGroup.visible = false;
+        transistorGroup.rotation.y = 0;
+        transistorGroup.rotation.x = 0;
+        transistorGroup.rotation.z = 0;
+        body.scale.set(0, 0, 0);
+        body.material.opacity = 0;
+        gate.scale.set(0, 0, 0);
+        gate.material.opacity = 0;
+        pins.forEach(p => { p.scale.set(0, 0, 0); p.material.opacity = 0; });
+        glowNodes.forEach(n => { n.scale.set(0, 0, 0); n.material.opacity = 0; });
+        traces.forEach(t => t.material.opacity = 0);
+        stripes.forEach(s => { s.scale.set(0, 0, 0); s.material.opacity = 0; });
+        neuralNodes.forEach((node) => { node.scale.set(0, 0, 0); node.material.opacity = 0; node.position.set(0, 0, 0); });
+        neuralLines.forEach(line => { line.material.opacity = 0; });
+        rings.forEach(ring => { ring.material.opacity = 0; });
+        rings2.forEach(ring => { ring.material.opacity = 0; });
+        sparkleMat.opacity = 0;
+        inst.cameraPos.set(0, 2.0, 8);
+        inst.cameraTarget.set(0, 0, 0);
+        explosionMat.opacity = 0;
+        inst.progress = 0;
+        inst.isAnimating = true;
+    }
+
+    function animateScene() {
+        if (!inst.animating || inst.paused) { animationId = null; return; }
+        animationId = requestAnimationFrame(animateScene);
+
+        inst.time += 0.016;
+        if (inst.isAnimating) {
+            inst.progress += 0.0020;
+            if (inst.progress > 1.1) { inst.isAnimating = false; setTimeout(() => { resetScene(); }, 2000); }
+        }
+
+        const p = Math.min(inst.progress, 1);
+        const waveTime = inst.time * 0.35;
+        const wave1 = Math.sin(waveTime * 0.5) * 0.5 + 0.5;
+        const wave2 = Math.sin(waveTime * 0.7 + 1.2) * 0.5 + 0.5;
+        const wave3 = Math.sin(waveTime * 0.9 + 2.8) * 0.5 + 0.5;
+        const wave4 = Math.cos(waveTime * 0.6 + 0.5) * 0.5 + 0.5;
+        const combinedWave = (wave1 * 0.4 + wave2 * 0.3 + wave3 * 0.2 + wave4 * 0.1);
+
+        if (p < 0.20 && inst.isAnimating) {
+            const t = p / 0.20;
+            const eased = easeOutBack(Math.min(t, 1));
+            body.scale.set(eased, eased, eased);
+            body.material.opacity = 0.92 * eased;
+            stripes.forEach((s, i) => {
+                const delay = i * 0.05;
+                const st = Math.max(0, Math.min(1, (t - delay) * 2.8));
+                const scale = easeOutBack(st);
+                s.scale.set(scale, scale, scale);
+                s.material.opacity = 0.25 * st;
+            });
+            gate.scale.set(eased, eased, eased);
+            gate.material.opacity = 0.85 * eased;
+            pins.forEach((pin, i) => {
+                const delay = i * 0.07;
+                const st = Math.max(0, Math.min(1, (t - delay) * 2.8));
+                const scale = easeOutBack(st);
+                pin.scale.set(scale, scale, scale);
+                pin.material.opacity = 0.9 * st;
+            });
+            traces.forEach((trace, i) => {
+                const delay = 0.1 + i * 0.04;
+                const st = Math.max(0, Math.min(1, (t - delay) * 3.5));
+                trace.material.opacity = 0.4 * easeOutCubic(st);
+            });
+            glowNodes.forEach((node, i) => {
+                const delay = 0.12 + i * 0.02;
+                const st = Math.max(0, Math.min(1, (t - delay) * 4));
+                const scale = easeOutBack(st);
+                node.scale.set(scale, scale, scale);
+                node.material.opacity = 0.9 * st;
+                node.material.emissiveIntensity = 0.4 + st * 0.6;
+            });
+            pinGroup.rotation.z = Math.sin(t * 12) * 0.02;
+            const orbitAngle = t * 0.15;
+            inst.cameraPos.x = Math.sin(orbitAngle) * 0.8;
+            inst.cameraPos.z = lerp(8.5, 6.5, easeOutCubic(t));
+            inst.cameraPos.y = lerp(2.5, 1.8, easeOutCubic(t));
+            inst.cameraTarget.set(0, 0.1, 0);
+            neuralGroup.visible = false;
+            transistorGroup.visible = true;
+            explosionMat.opacity = 0;
+            sparkleMat.opacity = 0;
+            mainLights.forEach((light, i) => { light.intensity = 0.5 + Math.sin(t * 20 + i) * 0.1; });
+        } else if (p < 0.40 && inst.isAnimating) {
+            const t = (p - 0.20) / 0.20;
+            const eased = easeInOutCubic(t);
+            const shrink = 1 - eased;
+            const shrinkEased = easeInCubic(shrink);
+            body.scale.set(shrinkEased, shrinkEased, shrinkEased);
+            body.material.opacity = 0.92 * shrinkEased;
+            gate.scale.set(shrinkEased, shrinkEased, shrinkEased);
+            gate.material.opacity = 0.85 * shrinkEased;
+            pins.forEach((pin) => { pin.scale.set(shrinkEased, shrinkEased, shrinkEased); pin.material.opacity = 0.9 * shrinkEased; });
+            glowNodes.forEach((node) => { node.scale.set(shrinkEased, shrinkEased, shrinkEased); node.material.opacity = 0.9 * shrinkEased; node.material.emissiveIntensity = 0.4 + (1 - shrinkEased) * 0.8; });
+            traces.forEach((trace) => { trace.material.opacity = 0.4 * shrinkEased; });
+            stripes.forEach((s) => { s.material.opacity = 0.25 * shrinkEased; });
+            transistorGroup.rotation.y = eased * Math.PI * 4;
+            transistorGroup.rotation.x = eased * 0.5;
+            transistorGroup.rotation.z = eased * 0.3;
+            inst.cameraPos.z = lerp(6.5, 3.0, easeInOutCubic(t));
+            inst.cameraPos.y = lerp(1.8, 0.8, easeInOutCubic(t));
+            inst.cameraPos.x = Math.sin(t * 0.5) * 0.5;
+            inst.cameraTarget.set(0, 0, 0);
+            neuralGroup.visible = false;
+            sparkleMat.opacity = 0;
+            if (t > 0.6) {
+                const burst = (t - 0.6) / 0.4;
+                const easedBurst = easeOutCubic(burst);
+                explosionMat.opacity = easedBurst * 0.5;
+                explosionMat.size = 0.05 + easedBurst * 0.08;
+                explosionMat.color.setHSL(0.55 + burst * 0.05, 0.8, 0.5);
+                const pos = explosionPoints.geometry.attributes.position.array;
+                for (let i = 0; i < 400; i++) {
+                    const vel = explosionVel[i];
+                    const speed = easedBurst * 0.8 + 0.2;
+                    pos[i * 3] += vel.x * speed * 0.5;
+                    pos[i * 3 + 1] += vel.y * speed * 0.5;
+                    pos[i * 3 + 2] += vel.z * speed * 0.5;
+                    if (Math.abs(pos[i * 3]) > 3 || Math.abs(pos[i * 3 + 1]) > 3) {
+                        pos[i * 3] = (Math.random() - 0.5) * 0.2;
+                        pos[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+                        pos[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+                    }
+                }
+                explosionPoints.geometry.attributes.position.needsUpdate = true;
+            }
+        } else if (p < 0.55 && inst.isAnimating) {
+            const t = (p - 0.40) / 0.15;
+            body.scale.set(0, 0, 0);
+            body.material.opacity = 0;
+            gate.scale.set(0, 0, 0);
+            gate.material.opacity = 0;
+            pins.forEach((pin) => { pin.scale.set(0, 0, 0); pin.material.opacity = 0; });
+            traces.forEach((trace) => { trace.material.opacity = 0; });
+            stripes.forEach((s) => { s.material.opacity = 0; });
+            const dot = glowNodes[0];
+            const pulse = 0.5 + Math.sin(t * Math.PI * 10 + inst.time * 0.6) * 0.35 + 0.35;
+            const scale = 0.2 + pulse * 0.8;
+            dot.scale.set(scale, scale, scale);
+            dot.material.opacity = 0.4 + pulse * 0.6;
+            dot.material.emissiveIntensity = 0.3 + pulse * 1.8;
+            const hue = (0.55 + t * 0.3 + inst.time * 0.02) % 1;
+            const col = new THREE.Color().setHSL(hue, 0.8, 0.5);
+            dot.material.color.set(col);
+            dot.material.emissive.set(col);
+            for (let i = 1; i < glowNodes.length; i++) { glowNodes[i].scale.set(0, 0, 0); glowNodes[i].material.opacity = 0; }
+            const orbit = inst.time * 0.35;
+            inst.cameraPos.x = Math.sin(orbit) * 1.2;
+            inst.cameraPos.z = 2.8 + Math.cos(orbit * 0.7) * 0.6;
+            inst.cameraPos.y = 0.6 + Math.sin(inst.time * 0.25) * 0.3;
+            inst.cameraTarget.set(0, 0, 0);
+            neuralGroup.visible = false;
+            transistorGroup.visible = true;
+            sparkleMat.opacity = 0;
+            mainLights.forEach((light, i) => { light.intensity = 0.5 + Math.sin(inst.time * 2 + i * 1.5) * 0.2; });
+            explosionMat.opacity = explosionMat.opacity * 0.99;
+        } else if (p < 0.72 && inst.isAnimating) {
+            const t = (p - 0.55) / 0.17;
+            const eased = easeOutElastic(Math.min(t, 1));
+            transistorGroup.visible = false;
+            neuralGroup.visible = true;
+            sparkleMat.opacity = 0;
+            neuralNodes.forEach((node, i) => {
+                const delay = (i / neuralNodes.length) * 0.2;
+                const localT = Math.max(0, Math.min(1, (t - delay) * 3.2));
+                const easedPos = easeOutBack(localT);
+                const targetX = neuralPositions[i].x;
+                const targetY = neuralPositions[i].y;
+                const targetZ = neuralPositions[i].z;
+                const overshoot = 1 + Math.sin(localT * Math.PI * 3) * 0.25 * (1 - localT);
+                node.position.x = targetX * easedPos * overshoot;
+                node.position.y = targetY * easedPos * overshoot;
+                node.position.z = targetZ * easedPos * overshoot;
+                const sizePulse = 0.3 + easedPos * 0.7 + Math.sin(inst.time + i) * 0.1;
+                node.scale.set(sizePulse, sizePulse, sizePulse);
+                node.material.opacity = easedPos * 0.9;
+                node.material.emissiveIntensity = 0.3 + easedPos * 0.9;
+                const waveValue = (wave1 + wave2 * 0.5 + wave3 * 0.3) / 1.8;
+                const baseCol = nodeBaseColors[i];
+                const hsl = {};
+                baseCol.getHSL(hsl);
+                const hueShift = (waveValue - 0.5) * 0.15 + Math.sin(i * 0.1 + inst.time) * 0.05;
+                const col = baseCol.clone();
+                col.setHSL((hsl.h + hueShift) % 1, 0.7 + waveValue * 0.2, 0.4 + waveValue * 0.3);
+                node.material.color.set(col);
+                node.material.emissive.set(col);
+            });
+            neuralLines.forEach((line, i) => {
+                const delay = 0.1 + (i / neuralLines.length) * 0.25;
+                const localT = Math.max(0, Math.min(1, (t - delay) * 4));
+                const pulse = 0.5 + Math.sin(inst.time * 0.002 + i * 0.3) * 0.3 + 0.5;
+                line.material.opacity = localT * 0.15 * pulse;
+                const waveValue = (wave2 + wave3 * 0.5 + wave4 * 0.3) / 1.8;
+                const data = lineData[i];
+                if (data) {
+                    const col1 = nodeBaseColors[data.node1];
+                    const col2 = nodeBaseColors[data.node2];
+                    const midCol = col1.clone().lerp(col2, 0.5);
+                    const hsl = {};
+                    midCol.getHSL(hsl);
+                    const hueShift = (waveValue - 0.5) * 0.1;
+                    midCol.setHSL((hsl.h + hueShift) % 1, 0.7 + waveValue * 0.2, 0.5 + waveValue * 0.2);
+                    line.material.color.set(midCol);
+                }
+            });
+            rings.forEach((ring, i) => {
+                const delay = 0.15 + i * 0.05;
+                const localT = Math.max(0, Math.min(1, (t - delay) * 3.5));
+                ring.material.opacity = localT * 0.08;
+                ring.scale.set(1 + localT * 0.3, 1 + localT * 0.3, 1 + localT * 0.3);
+                const ringHue = (0.55 + i / rings.length * 0.3 + inst.time * 0.01) % 1;
+                ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                ring.rotation.z += 0.003;
+                ring.rotation.x = Math.PI / 2 + (i - 2.5) * 0.12 + Math.sin(inst.time * 0.001 + i) * 0.05;
+            });
+            rings2.forEach((ring, i) => {
+                const delay = 0.2 + i * 0.06;
+                const localT = Math.max(0, Math.min(1, (t - delay) * 3));
+                ring.material.opacity = localT * 0.06;
+                ring.scale.set(1 + localT * 0.25, 1 + localT * 0.25, 1 + localT * 0.25);
+                const ringHue = (0.55 + i / rings2.length * 0.2 + inst.time * 0.008) % 1;
+                ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                ring.rotation.z += 0.002;
+                ring.rotation.y += 0.001;
+            });
+            inst.cameraPos.x = Math.sin(inst.time * 0.08) * 1.5;
+            inst.cameraPos.z = lerp(3.5, 6.0, easeOutCubic(t));
+            inst.cameraPos.y = lerp(0.8, 1.8, easeOutCubic(t));
+            inst.cameraTarget.set(0, 0, 0);
+            explosionMat.opacity = explosionMat.opacity * 0.98;
+        } else {
+            const isPausing = inst.progress > 1.0;
+            if (isPausing) {
+                neuralGroup.visible = true;
+                transistorGroup.visible = false;
+                sparkleMat.opacity = 0.3 + Math.sin(inst.time * 0.3) * 0.1;
+                const sp = sparklePoints.geometry.attributes.position.array;
+                for (let i = 0; i < 150; i++) {
+                    sp[i * 3] += sparkleVel[i].x;
+                    sp[i * 3 + 1] += sparkleVel[i].y;
+                    sp[i * 3 + 2] += sparkleVel[i].z;
+                    if (Math.abs(sp[i * 3]) > 3.5) sp[i * 3] = (Math.random() - 0.5) * 6;
+                    if (Math.abs(sp[i * 3 + 1]) > 2.5) sp[i * 3 + 1] = (Math.random() - 0.5) * 4;
+                    if (Math.abs(sp[i * 3 + 2]) > 3.5) sp[i * 3 + 2] = (Math.random() - 0.5) * 6;
+                }
+                sparklePoints.geometry.attributes.position.needsUpdate = true;
+                sparkleMat.color.setHSL(0.55 + inst.time * 0.01 % 1, 0.6, 0.7);
+                neuralNodes.forEach((node, i) => {
+                    const pulse = 1 + Math.sin(inst.time * 0.0015 + i * 0.5) * 0.12;
+                    node.scale.set(pulse, pulse, pulse);
+                    node.material.opacity = 0.6 + Math.sin(inst.time * 0.002 + i * 0.3) * 0.25 + 0.25;
+                    node.material.emissiveIntensity = 0.4 + Math.sin(inst.time * 0.0015 + i * 0.7) * 0.35 + 0.35;
+                    const baseCol = nodeBaseColors[i];
+                    const hsl = {};
+                    baseCol.getHSL(hsl);
+                    const waveValue = (combinedWave + Math.sin(i * 0.1 + inst.time * 0.3) * 0.3) * 0.5 + 0.5;
+                    const hueShift = (waveValue - 0.5) * 0.2;
+                    const col = baseCol.clone();
+                    col.setHSL((hsl.h + hueShift) % 1, 0.7 + waveValue * 0.2, 0.4 + waveValue * 0.3);
+                    node.material.color.set(col);
+                    node.material.emissive.set(col);
+                });
+                neuralLines.forEach((line, i) => {
+                    const pulse = 0.5 + Math.sin(inst.time * 0.0008 + i * 0.3 + combinedWave * 2) * 0.4 + 0.5;
+                    line.material.opacity = 0.09 * pulse;
+                    const data = lineData[i];
+                    if (data) {
+                        const col1 = nodeBaseColors[data.node1];
+                        const col2 = nodeBaseColors[data.node2];
+                        const midCol = col1.clone().lerp(col2, 0.5);
+                        const hsl = {};
+                        midCol.getHSL(hsl);
+                        const waveInfluence = (combinedWave - 0.5) * 0.12;
+                        midCol.setHSL((hsl.h + waveInfluence) % 1, 0.7 + combinedWave * 0.2, 0.5 + combinedWave * 0.2);
+                        line.material.color.set(midCol);
+                    }
+                });
+                rings.forEach((ring, i) => {
+                    const pulse = 0.5 + Math.sin(inst.time * 0.0008 + i * 0.5 + combinedWave * 2) * 0.3 + 0.5;
+                    ring.material.opacity = 0.06 * pulse;
+                    ring.rotation.z += 0.002;
+                    ring.rotation.x = Math.PI / 2 + (i - 2.5) * 0.12 + Math.sin(inst.time * 0.0005 + i) * 0.05;
+                    const ringHue = (0.55 + i / rings.length * 0.3 + inst.time * 0.008) % 1;
+                    ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                    ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                });
+                rings2.forEach((ring, i) => {
+                    const pulse = 0.5 + Math.sin(inst.time * 0.0007 + i * 0.4 + combinedWave * 1.5) * 0.3 + 0.5;
+                    ring.material.opacity = 0.05 * pulse;
+                    ring.rotation.z += 0.0015;
+                    ring.rotation.y += 0.001;
+                    const ringHue = (0.55 + i / rings2.length * 0.2 + inst.time * 0.006) % 1;
+                    ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                    ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                });
+                const orbit = inst.time * 0.00004 + 0.5;
+                inst.cameraPos.x = Math.sin(orbit) * 5.0;
+                inst.cameraPos.z = 6.5 + Math.sin(orbit * 0.7) * 1.0;
+                inst.cameraPos.y = 1.8 + Math.sin(inst.time * 0.00012 + 0.5) * 0.5;
+                inst.cameraTarget.set(0, 0, 0);
+                mainLights.forEach((light, i) => { light.intensity = 0.5 + Math.sin(inst.time * 0.3 + i * 0.8) * 0.15; });
+            } else {
+                const t = (p - 0.72) / 0.28;
+                const eased = easeOutQuart(t);
+                neuralGroup.visible = true;
+                transistorGroup.visible = false;
+                sparkleMat.opacity = eased * 0.3;
+                const sp = sparklePoints.geometry.attributes.position.array;
+                for (let i = 0; i < 150; i++) {
+                    sp[i * 3] += sparkleVel[i].x * (0.5 + eased * 0.5);
+                    sp[i * 3 + 1] += sparkleVel[i].y * (0.5 + eased * 0.5);
+                    sp[i * 3 + 2] += sparkleVel[i].z * (0.5 + eased * 0.5);
+                    if (Math.abs(sp[i * 3]) > 3.5) sp[i * 3] = (Math.random() - 0.5) * 6;
+                    if (Math.abs(sp[i * 3 + 1]) > 2.5) sp[i * 3 + 1] = (Math.random() - 0.5) * 4;
+                    if (Math.abs(sp[i * 3 + 2]) > 3.5) sp[i * 3 + 2] = (Math.random() - 0.5) * 6;
+                }
+                sparklePoints.geometry.attributes.position.needsUpdate = true;
+                sparkleMat.color.setHSL(0.55 + inst.time * 0.01 + eased * 0.1, 0.6, 0.7);
+                neuralNodes.forEach((node, i) => {
+                    const delay = (i / neuralNodes.length) * 0.08;
+                    const localT = Math.max(0, Math.min(1, (t - delay) * 3));
+                    const settle = easeOutBack(localT);
+                    const targetX = neuralPositions[i].x;
+                    const targetY = neuralPositions[i].y;
+                    const targetZ = neuralPositions[i].z;
+                    node.position.x = node.position.x * (1 - settle * 0.06) + targetX * settle * 0.06;
+                    node.position.y = node.position.y * (1 - settle * 0.06) + targetY * settle * 0.06;
+                    node.position.z = node.position.z * (1 - settle * 0.06) + targetZ * settle * 0.06;
+                    const pulse = 1 + Math.sin(inst.time * 0.002 + i * 0.5) * 0.08 * (0.5 + t * 0.5);
+                    node.scale.set(pulse, pulse, pulse);
+                    node.material.opacity = 0.6 + Math.sin(inst.time * 0.003 + i * 0.3) * 0.2 + 0.2;
+                    node.material.emissiveIntensity = 0.4 + Math.sin(inst.time * 0.002 + i * 0.7) * 0.3 + 0.3;
+                    const baseCol = nodeBaseColors[i];
+                    const hsl = {};
+                    baseCol.getHSL(hsl);
+                    const waveValue = (combinedWave + Math.sin(i * 0.1 + inst.time * 0.3) * 0.2) * 0.5 + 0.5;
+                    const hueShift = (waveValue - 0.5) * 0.15;
+                    const col = baseCol.clone();
+                    col.setHSL((hsl.h + hueShift) % 1, 0.7 + waveValue * 0.2, 0.4 + waveValue * 0.3);
+                    node.material.color.set(col);
+                    node.material.emissive.set(col);
+                });
+                neuralLines.forEach((line, i) => {
+                    const data = lineData[i];
+                    if (data) {
+                        const delay = 0.05 + (i / neuralLines.length) * 0.2;
+                        const localT = Math.max(0, Math.min(1, (t - delay) * 4));
+                        const pulse = 0.5 + Math.sin(inst.time * 0.001 + i * 0.3 + combinedWave * 2) * 0.4 + 0.5;
+                        line.material.opacity = 0.08 * localT * (0.5 + t * 0.5) * pulse;
+                        const col1 = nodeBaseColors[data.node1];
+                        const col2 = nodeBaseColors[data.node2];
+                        const midCol = col1.clone().lerp(col2, 0.5);
+                        const hsl = {};
+                        midCol.getHSL(hsl);
+                        const waveInfluence = (combinedWave - 0.5) * 0.1;
+                        midCol.setHSL((hsl.h + waveInfluence) % 1, 0.7 + combinedWave * 0.2, 0.5 + combinedWave * 0.2);
+                        line.material.color.set(midCol);
+                    }
+                });
+                rings.forEach((ring, i) => {
+                    const delay = 0.08 + i * 0.04;
+                    const localT = Math.max(0, Math.min(1, (t - delay) * 4));
+                    ring.material.opacity = localT * 0.07 * (0.5 + 0.5 * Math.sin(inst.time + i));
+                    ring.scale.set(1 + localT * 0.3, 1 + localT * 0.3, 1 + localT * 0.3);
+                    const ringHue = (0.55 + i / rings.length * 0.3 + inst.time * 0.01 + eased * 0.05) % 1;
+                    ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                    ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                    ring.rotation.z += 0.002;
+                });
+                rings2.forEach((ring, i) => {
+                    const delay = 0.12 + i * 0.05;
+                    const localT = Math.max(0, Math.min(1, (t - delay) * 3.5));
+                    ring.material.opacity = localT * 0.05 * (0.5 + 0.5 * Math.sin(inst.time + i));
+                    ring.scale.set(1 + localT * 0.25, 1 + localT * 0.25, 1 + localT * 0.25);
+                    const ringHue = (0.55 + i / rings2.length * 0.2 + inst.time * 0.008 + eased * 0.03) % 1;
+                    ring.material.color.setHSL(ringHue, 0.7, 0.5);
+                    ring.material.emissive.setHSL(ringHue, 0.7, 0.5);
+                    ring.rotation.z += 0.0015;
+                    ring.rotation.y += 0.001;
+                });
+                const orbit = inst.time * 0.00006 + t * 0.5;
+                inst.cameraPos.x = Math.sin(orbit) * 4.5;
+                inst.cameraPos.z = 6.0 + Math.sin(orbit * 0.7) * 0.8;
+                inst.cameraPos.y = 1.8 + Math.sin(inst.time * 0.00015 + t) * 0.4;
+                inst.cameraTarget.set(0, 0, 0);
+                mainLights.forEach((light, i) => { light.intensity = 0.4 + eased * 0.4 + Math.sin(inst.time * 0.3 + i * 0.8) * 0.1; });
+                explosionMat.opacity = explosionMat.opacity * 0.99;
+            }
+        }
+
+        camera.position.lerp(inst.cameraPos, 0.04);
+        camera.lookAt(inst.cameraTarget);
+        bgParticles.rotation.y += 0.0001;
+        bgParticles.rotation.x += 0.00005;
+        renderer.render(scene, camera);
+    }
+
+    animateScene();
+
+    window.addEventListener('resize', () => {
+        if (inst && inst.container) {
+            const w = inst.container.clientWidth;
+            const h = inst.container.clientHeight;
+            inst.camera.aspect = w / h;
+            inst.camera.updateProjectionMatrix();
+            inst.renderer.setSize(w, h);
+        }
+    });
+
+    const ro = new ResizeObserver(() => {
+        if (inst && inst.container) {
+            const w = inst.container.clientWidth;
+            const h = inst.container.clientHeight;
+            inst.camera.aspect = w / h;
+            inst.camera.updateProjectionMatrix();
+            inst.renderer.setSize(w, h);
+        }
+    });
+    ro.observe(container);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        initThree('three-container');
+    }, 100);
+});
+    </script>
+
+</body>
+</html>

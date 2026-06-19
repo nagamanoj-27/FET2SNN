@@ -1,0 +1,134 @@
+{
+  "users": {
+    "demo@fet2snn.com": {
+      "email": "demo@fet2snn.com",
+      "fullName": "Demo User",
+      "firstName": "Demo",
+      "role": "Guest Researcher",
+      "institution": "FET2SNN Platform",
+      "stats": {
+        "projects": 3,
+        "inferences": 15,
+        "collaborators": 4
+      },
+      "joinDate": "June 2024",
+      "password_hash": "b172871a07be8d58f8e4b89c196fae33:4400f4ec9ec2510cde250e1de954ce98fc52408429747e325be933aa32c6321a",
+      "created_at": "2026-06-17T05:00:48.478527Z"
+    },
+    "dr.sarah@mit.edu": {
+      "email": "dr.sarah@mit.edu",
+      "fullName": "Dr. Sarah Chen",
+      "firstName": "Sarah",
+      "role": "Lead Researcher",
+      "institution": "MIT - Semiconductor Lab",
+      "stats": {
+        "projects": 12,
+        "inferences": 47,
+        "collaborators": 8
+      },
+      "joinDate": "March 2024",
+      "password_hash": "6e247f96d300b3371fcb62d599403c2b:fcef9726f1abc537e52a6c3ec2bac4d392d1de41a4c026d2a57a9a5aa9cd72f5",
+      "created_at": "2026-06-17T05:00:48.478543Z"
+    },
+    "test@example.com": {
+      "password_hash": "190fc5c8446290dcb336baf1f7ff06f6:29bc348f2961dd6eee9ed23e6c6af593cd84cd283f7d6ad9349e6e4100fe78d6",
+      "fullName": "Test User",
+      "firstName": "Test",
+      "role": "Researcher",
+      "institution": "Test Uni",
+      "stats": {
+        "projects": 0,
+        "inferences": 0,
+        "collaborators": 0
+      },
+      "joinDate": "June 2026",
+      "created_at": "2026-06-17T05:01:14.460086Z",
+      "email": "test@example.com"
+    },
+    "123456789@gmail.com": {
+      "password_hash": "73c53bf2396a02d72174bb0b93f64c29:70be0de6ec1e412ba8fa030901900f544cabbe4ce3c72c774832deea5265d82a",
+      "fullName": "naga manoj",
+      "firstName": "naga",
+      "role": "student",
+      "institution": "pullareddy",
+      "stats": {
+        "projects": 0,
+        "inferences": 0,
+        "collaborators": 0
+      },
+      "joinDate": "June 2026",
+      "created_at": "2026-06-17T05:05:34.392433Z",
+      "email": "123456789@gmail.com"
+    },
+    "nagamanoj002008@gmail.com": {
+      "password_hash": "3bc82648b2aad46320b5cebc5544088f:ad5755130f6a875a0a72c676208a3d8ac261572f15809402f897417216eee64e",
+      "fullName": "Manoj Naga",
+      "firstName": "Manoj",
+      "role": "Administrator",
+      "institution": "FET2SNN Platform",
+      "stats": {
+        "projects": 0,
+        "inferences": 0,
+        "collaborators": 0
+      },
+      "joinDate": "June 2024",
+      "created_at": "2026-06-17T05:17:49.374671Z",
+      "email": "nagamanoj002008@gmail.com"
+    },
+    "nagamanoj002008+test1@gmail.com": {
+      "password_hash": "c06457cbba549fd93950c04d2342bdc9:bbeabf52a170c75d998547a308a6f4e41bd936e5f793b1a52a969f5421d36e79",
+      "fullName": "Manoj Test",
+      "firstName": "Manoj",
+      "role": "Researcher",
+      "institution": "FET2SNN Labs",
+      "stats": {
+        "projects": 0,
+        "inferences": 0,
+        "collaborators": 0
+      },
+      "joinDate": "June 2026",
+      "created_at": "2026-06-17T05:28:07.551506Z",
+      "email": "nagamanoj002008+test1@gmail.com"
+    }
+  },
+  "sessions": {
+    "DWXBlXnaPGHFosjYisjgMdyx1yxKV54b0bD2UXWZwEjt1TCn": {
+      "email": "demo@fet2snn.com",
+      "expires": "2026-06-18T05:01:06.136408Z"
+    },
+    "N2W37lkuShUdd04txerK8xqHudfnYK3LEfKjv5mg4jUfNtUz": {
+      "email": "test@example.com",
+      "expires": "2026-06-18T05:01:14.460501Z"
+    },
+    "oqbVrfLnTIgnkjFBcROSJLXukYApXPKw9vAcNolBmVOOXmvb": {
+      "email": "nagamanoj002008+test1@gmail.com",
+      "expires": "2026-06-18T05:28:07.552013Z"
+    },
+    "VhRbUwdsibQtmzTjodiY4gsO5lOiywLL9BcBKWZ4ZKXDcV8d": {
+      "email": "demo@fet2snn.com",
+      "expires": "2026-06-19T10:18:57.337807Z"
+    }
+  },
+  "reset_tokens": {
+    "BCxAILJ72Gbua8K897A760DZLoJgLUDifSBVfrWF6qNVWswT": {
+      "email": "demo@fet2snn.com",
+      "expires": "2026-06-17T06:01:22.486275Z"
+    },
+    "ROXQ4rku0SV2sRNnZFGJiOI0ieDAjhxEVPtjtlDAKtXw7rwK": {
+      "email": "nagamanoj002008@gmail.com",
+      "expires": "2026-06-17T06:18:12.926390Z"
+    },
+    "iahPGdi8TrQqY8WD74bkQR0tTqBsgv8gIfQ2DKJe3zBxLiq1": {
+      "email": "nagamanoj002008@gmail.com",
+      "expires": "2026-06-17T06:18:46.128368Z"
+    },
+    "NEkiOAzHdq9odpTdG6Z4DYQfmAuD3IQLUW6cgI5OnHTv21eT": {
+      "email": "nagamanoj002008@gmail.com",
+      "expires": "2026-06-17T06:20:01.090563Z"
+    },
+    "Ba6XfWk5j65u6tQuV50PSF7sVGX89uhyLrL1aU5TGOY5iJgU": {
+      "email": "nagamanoj002008@gmail.com",
+      "expires": "2026-06-18T11:37:30.747889Z"
+    }
+  }
+}
