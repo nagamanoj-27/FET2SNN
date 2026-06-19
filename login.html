@@ -1288,7 +1288,9 @@
                 if (data.status === 'success') {
                     currentUser = data.user;
                     updateDashboard();
-                    window.location.href = 'index.html';
+                    const path = window.location.pathname;
+                    const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/';
+                    window.location.href = base + 'index.html';
                 } else {
                     sessionStorage.removeItem('fet2snn_token');
                     authToken = null;
@@ -1376,7 +1378,9 @@
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = 'index.html';
+                        const path = window.location.pathname;
+                        const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/';
+                        window.location.href = base + 'index.html';
                     }, 800);
                 } else {
                     showToast('❌ ' + data.message, 'error');
@@ -1482,7 +1486,9 @@
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = 'index.html';
+                        const path = window.location.pathname;
+                        const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/';
+                        window.location.href = base + 'index.html';
                     }, 800);
                 } else {
                     showToast('❌ ' + data.message, 'error');
@@ -1536,7 +1542,9 @@
                     showToast('🎉 ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = 'index.html';
+                        const path = window.location.pathname;
+                        const base = path.toLowerCase().includes('/fet2snn') ? '/FET2SNN/' : '/';
+                        window.location.href = base + 'index.html';
                     }, 1000);
                 } else {
                     showToast('❌ ' + data.message, 'error');
