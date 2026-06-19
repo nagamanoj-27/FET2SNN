@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  (function() {
+    const token = localStorage.getItem('fet2snn_token');
+    if (!token) {
+      window.location.href = '/login';
+    }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>FET2SNN | One Click, One Inference</title>
 <meta name="description" content="Pre-TCAD analytical simulation tool for GAA Nanosheet FET to Spiking Neural Network accelerator design">
@@ -1354,7 +1362,7 @@ body {
     <a href="contact.html" target="_blank" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(16, 185, 129, 0.07); border-color: rgba(16, 185, 129, 0.3); color: var(--green); transition: all 0.3s ease; text-decoration: none;" onmouseover="this.style.background='rgba(16, 185, 129, 0.14)'; this.style.borderColor='var(--green)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(16, 185, 129, 0.07)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='none';" title="Contact the developer">
       <i class="fas fa-envelope"></i> Contact
     </a>
-    <button onclick="window.location.href='/login'" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(239, 68, 68, 0.07); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.14)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.07)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='none';" title="Logout from session">
+    <button onclick="localStorage.removeItem('fet2snn_token'); window.location.href='/login';" class="btn" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center; background: rgba(239, 68, 68, 0.07); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.14)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.07)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='none';" title="Logout from session">
       <i class="fas fa-sign-out-alt"></i> Logout
     </button>
     <button id="startTourBtn" style="display:none;" class="btn bv" style="border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; justify-content:center;" title="Start Step-by-Step Guided Tutorial">
