@@ -1288,7 +1288,7 @@
                 if (data.status === 'success') {
                     currentUser = data.user;
                     updateDashboard();
-                    window.location.href = '/';
+                    window.location.href = 'index.html';
                 } else {
                     sessionStorage.removeItem('fet2snn_token');
                     authToken = null;
@@ -1376,7 +1376,7 @@
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 800);
                 } else {
                     showToast('❌ ' + data.message, 'error');
@@ -1482,7 +1482,7 @@
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 800);
                 } else {
                     showToast('❌ ' + data.message, 'error');
@@ -1536,7 +1536,7 @@
                     showToast('🎉 ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 1000);
                 } else {
                     showToast('❌ ' + data.message, 'error');
