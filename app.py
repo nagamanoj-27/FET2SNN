@@ -5,7 +5,7 @@ import secrets
 import string
 import datetime
 import numpy as np
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, make_response
 from flask_cors import CORS
 
 # ==========================================
@@ -115,11 +115,15 @@ seed_demo_users()
 # ==========================================
 @app.route('/')
 def index():
-    return app.send_static_file('index.html')
+    resp = make_response(app.send_static_file('index.html'))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 @app.route('/login')
 def login_page():
-    return app.send_static_file('login.html')
+    resp = make_response(app.send_static_file('login.html'))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 # ==========================================
 # AUTH API - LOGIN

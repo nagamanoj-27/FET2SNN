@@ -3,11 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  (function() {
+  // Hide page immediately until token is verified
+  document.documentElement.style.display = 'none';
+
+  (async function() {
     const token = localStorage.getItem('fet2snn_token');
     if (!token) {
       window.location.href = '/login';
+      return;
     }
+    try {
+      const res = await fetch('/api/auth/verify', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (res.status === 401) {
+        localStorage.removeItem('fet2snn_token');
+        window.location.href = '/login';
+        return;
+      }
+    } catch (e) {
+      console.warn("Offline fallback mode - unable to verify token:", e);
+    }
+    // Show page if authenticated
+    document.documentElement.style.display = '';
   })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
