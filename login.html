@@ -1261,7 +1261,7 @@
         // ==========================================
         const API_BASE = ''; // same origin
         let currentUser = null;
-        let authToken = localStorage.getItem('fet2snn_token') || null;
+        let authToken = sessionStorage.getItem('fet2snn_token') || null;
 
         // ==========================================
         // API HELPER
@@ -1290,7 +1290,7 @@
                     updateDashboard();
                     window.location.href = '/';
                 } else {
-                    localStorage.removeItem('fet2snn_token');
+                    sessionStorage.removeItem('fet2snn_token');
                     authToken = null;
                 }
             } catch (e) {
@@ -1372,7 +1372,7 @@
                 if (data.status === 'success') {
                     authToken = data.token;
                     currentUser = data.user;
-                    localStorage.setItem('fet2snn_token', authToken);
+                    sessionStorage.setItem('fet2snn_token', authToken);
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
@@ -1478,7 +1478,7 @@
                 if (data.status === 'success') {
                     authToken = data.token;
                     currentUser = data.user;
-                    localStorage.setItem('fet2snn_token', authToken);
+                    sessionStorage.setItem('fet2snn_token', authToken);
                     showToast('✅ ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
@@ -1532,7 +1532,7 @@
                 if (data.status === 'success') {
                     authToken = data.token;
                     currentUser = data.user;
-                    localStorage.setItem('fet2snn_token', authToken);
+                    sessionStorage.setItem('fet2snn_token', authToken);
                     showToast('🎉 ' + data.message, 'success');
                     setTimeout(() => {
                         updateDashboard();
@@ -1609,7 +1609,7 @@
             } catch (e) { /* ignore */ }
             currentUser = null;
             authToken = null;
-            localStorage.removeItem('fet2snn_token');
+            sessionStorage.removeItem('fet2snn_token');
             showToast('👋 Logged out successfully', 'success');
             setTimeout(() => {
                 showPage('loginPage');
