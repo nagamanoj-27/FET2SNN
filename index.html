@@ -1270,6 +1270,108 @@ body {
     margin: 0;
     padding: 0;
 }
+
+    /* SNN Metric Cards Styling */
+    .snn-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .snn-metric-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem 1rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--border); /* neutral grey border */
+      background: var(--card-h);
+      transition: all 0.3s ease;
+      text-align: center;
+      position: relative;
+    }
+    .snn-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sh1);
+    }
+    .snn-metric-card.excellent,
+    .snn-metric-card.fast {
+      border-color: var(--green) !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+    }
+    .snn-metric-card.good,
+    .snn-metric-card.moderate {
+      border-color: var(--amber) !important;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+    .snn-metric-card.high,
+    .snn-metric-card.slow,
+    .snn-metric-card.low {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+    }
+
+    .snn-card-label {
+      font-size: 0.72rem;
+      color: var(--ts);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .snn-card-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .snn-card-unit {
+      font-size: 0.75rem;
+      color: var(--tm);
+      margin-top: 0.15rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .snn-card-status {
+      margin-top: 0.8rem;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--ts);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .snn-metric-card.excellent .snn-card-status,
+    .snn-metric-card.fast .snn-card-status {
+      color: var(--green) !important;
+      background: rgba(16, 185, 129, 0.1) !important;
+      border-color: rgba(16, 185, 129, 0.2) !important;
+    }
+    .snn-metric-card.good .snn-card-status,
+    .snn-metric-card.moderate .snn-card-status {
+      color: var(--amber) !important;
+      background: rgba(245, 158, 11, 0.1) !important;
+      border-color: rgba(245, 158, 11, 0.2) !important;
+    }
+    .snn-metric-card.high .snn-card-status,
+    .snn-metric-card.slow .snn-card-status,
+    .snn-metric-card.low .snn-card-status {
+      color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.1) !important;
+      border-color: rgba(239, 68, 68, 0.2) !important;
+    }
 </style>
 </head>
 <body data-theme="dark">
@@ -1601,23 +1703,84 @@ body {
             <!-- Hidden Initially: SNN Performance Prediction -->
             <div class="card" id="snnCard" style="display: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
               <div class="ct"><i class="fas fa-brain"></i> SNN Performance Prediction <span class="bdg" style="margin-left:auto">LightGBM-Derived</span></div>
-              <div class="sm">
-                <div class="smc en">
-                  <div class="sl2"><i class="fas fa-bolt" style="color:var(--blue)"></i> Energy / Spike <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.94, MAE = ±0.45 fJ, test set n=1000.</span></span></div>
-                  <div class="sv bl" id="sEn">—</div>
-                  <div class="sunit">femtojoules (fJ)</div>
+              <div class="snn-metric-grid">
+                <!-- Card 1: Energy / Spike -->
+                <div class="snn-metric-card" id="cardEn">
+                  <div class="snn-card-label">Energy / Spike <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.94, MAE = ±0.45 fJ, test set n=1000.</span></span></div>
+                  <div class="snn-card-value" id="sEn">—</div>
+                  <div class="snn-card-unit">fJ</div>
+                  <div class="snn-card-status" id="statusEn">—</div>
                 </div>
-                <div class="smc la">
-                  <div class="sl2"><i class="fas fa-clock" style="color:var(--green)"></i> Inference Latency <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.92, MAE = ±0.21 ms, test set n=1000.</span></span></div>
-                  <div class="sv gr" id="sLa">—</div>
-                  <div class="sunit">milliseconds (ms)</div>
+                <!-- Card 2: Inference Latency -->
+                <div class="snn-metric-card" id="cardLa">
+                  <div class="snn-card-label">Inference Latency <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.92, MAE = ±0.21 ms, test set n=1000.</span></span></div>
+                  <div class="snn-card-value" id="sLa">—</div>
+                  <div class="snn-card-unit">ms</div>
+                  <div class="snn-card-status" id="statusLa">—</div>
                 </div>
-                <div class="smc ac">
-                  <div class="sl2"><i class="fas fa-bullseye" style="color:var(--violet)"></i> SNN Accuracy <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.97, MAE = ±1.2%, test set n=1000.</span></span></div>
-                  <div class="sv vi" id="sAc">—</div>
-                  <div class="sunit">percent (%)</div>
+                <!-- Card 3: SNN Accuracy -->
+                <div class="snn-metric-card" id="cardAc">
+                  <div class="snn-card-label">SNN Accuracy <span class="ttip">ⓘ<span class="ttip-text">LightGBM validation: R² = 0.97, MAE = ±1.2%, test set n=1000.</span></span></div>
+                  <div class="snn-card-value" id="sAc">—</div>
+                  <div class="snn-card-unit">%</div>
+                  <div class="snn-card-status" id="statusAc">—</div>
                 </div>
               </div>
+              <script>
+                (function() {
+                  const observeMetric = (valId, cardId, statusId, getStatus) => {
+                    const valEl = document.getElementById(valId);
+                    const cardEl = document.getElementById(cardId);
+                    const statusEl = document.getElementById(statusId);
+                    if (!valEl || !cardEl || !statusEl) return;
+
+                    const update = () => {
+                      let text = valEl.textContent.trim();
+                      if (text === '—' || !text) {
+                        statusEl.textContent = '—';
+                        cardEl.className = 'snn-metric-card';
+                      } else {
+                        const val = parseFloat(text);
+                        if (!isNaN(val)) {
+                          const status = getStatus(val);
+                          statusEl.textContent = status;
+                          cardEl.className = 'snn-metric-card ' + status.toLowerCase();
+                          // Strip out non-numeric characters to keep ONLY the bold number in the value field
+                          const cleanNum = text.replace(/[a-zA-Z%/\s]/g, '');
+                          if (valEl.textContent !== cleanNum) {
+                            valEl.textContent = cleanNum;
+                          }
+                        }
+                      }
+                    };
+
+                    const observer = new MutationObserver(() => {
+                      observer.disconnect();
+                      update();
+                      observer.observe(valEl, { childList: true, characterData: true, subtree: true });
+                    });
+
+                    observer.observe(valEl, { childList: true, characterData: true, subtree: true });
+                    update(); // Initial run
+                  };
+
+                  observeMetric('sEn', 'cardEn', 'statusEn', (v) => {
+                    if (v < 2.0) return 'Excellent';
+                    if (v <= 5.0) return 'Good';
+                    return 'High';
+                  });
+                  observeMetric('sLa', 'cardLa', 'statusLa', (v) => {
+                    if (v < 1.0) return 'Fast';
+                    if (v <= 3.0) return 'Moderate';
+                    return 'Slow';
+                  });
+                  observeMetric('sAc', 'cardAc', 'statusAc', (v) => {
+                    if (v > 90.0) return 'Excellent';
+                    if (v >= 75.0) return 'Good';
+                    return 'Low';
+                  });
+                })();
+              </script>
               <p class="mn" style="margin-top:.9rem"><i class="fas fa-info-circle"></i> Energy ≥ 0.01 fJ · Latency ≥ 0.5 ms · Accuracy clamped 50–98%.</p>
               <div class="sent-note" style="margin-top:0.75rem"><i class="fas fa-check-circle" style="color:var(--green)"></i> <strong>Recalibrated (2026):</strong> Analytical models & LightGBM SNN coefficients are now exactly calibrated to the 17-device benchmark dataset using Sentaurus TCAD (MLDA + Lombardi confinement).</div>
             </div>
