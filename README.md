@@ -1,3 +1,13 @@
+---
+title: FET2SNN
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # FET2SNN
 
 Pre-TCAD analytical simulation tool for GAA Nanosheet FET to Spiking Neural Network (SNN) accelerator design.
@@ -8,14 +18,13 @@ Pre-TCAD analytical simulation tool for GAA Nanosheet FET to Spiking Neural Netw
 - **TCAD Viewer**: Visualizer for TCAD device structures and parameters.
 - **Cadence Workbench**: Thermal-Aware GAA-FET compact model generator for Cadence Virtuoso workflows.
 
-## Deployment on Render
+## Deployment on Hugging Face Spaces
 
-This project is configured with a Render Blueprint (`render.yaml`) for automated deployment. Click the button below to deploy this full-stack application instantly to your Render account:
+This project is configured with a Dockerfile for automated deployment to Hugging Face Spaces.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/nagamanoj-27/FET2SNN)
-
-### Manual Deployment Steps on Render
-1. Sign in to your [Render Dashboard](https://dashboard.render.com/).
-2. Click **New +** and select **Blueprint**.
-3. Connect your GitHub account and select this repository (`FET2SNN`).
-4. Click **Approve** to deploy. Render will automatically read the `render.yaml` configuration and launch your Web Service.
+### Automated Sync via GitHub Actions
+Every time you push to the `main` branch of this GitHub repository, it can automatically sync to your Hugging Face Space:
+1. Create a Space on Hugging Face (choose **Docker** SDK).
+2. Generate a **Write** token from your Hugging Face [Settings > Tokens](https://huggingface.co/settings/tokens).
+3. In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add a secret named `HF_TOKEN` containing your Hugging Face token.
+4. Update the `.github/workflows/sync-to-hub.yml` file to match your Hugging Face space repository ID (replace `nagamanoj-27/FET2SNN` under `huggingface_repo_id` if it is different).
